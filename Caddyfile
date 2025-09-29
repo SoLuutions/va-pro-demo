@@ -1,0 +1,8 @@
+:80 {
+    root * /app/dist
+    file_server
+
+    header {
+        Content-Type application/javascript js
+    }
+}
