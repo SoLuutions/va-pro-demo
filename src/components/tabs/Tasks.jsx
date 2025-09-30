@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Plus, Search, Building2, Calendar, Clock, Play, Pause } from "lucide-react";
 
 export default function Tasks({
@@ -13,6 +13,20 @@ export default function Tasks({
   getClientName,
   setShowNewTaskModal,
 }) {
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All Status");
+  const [clientFilter, setClientFilter] = useState("All Clients");
+
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const matchesSearch = task.title.toLowerCase().includes(searchText.toLowerCase()) ||
+                           task.description.toLowerCase().includes(searchText.toLowerCase());
+      const matchesStatus = statusFilter === "All Status" || task.status === statusFilter;
+      const matchesClient = clientFilter === "All Clients" || getClientName(task.clientId) === clientFilter;
+      return matchesSearch && matchesStatus && matchesClient;
+    });
+  }, [tasks, searchText, statusFilter, clientFilter, getClientName]);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -34,17 +48,27 @@ export default function Tasks({
               <input
                 type="text"
                 placeholder="Search tasks..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            <select className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
               <option>All Status</option>
               <option>To Do</option>
               <option>In Progress</option>
               <option>Review</option>
               <option>Completed</option>
             </select>
-            <select className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            <select 
+              value={clientFilter}
+              onChange={(e) => setClientFilter(e.target.value)}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
               <option>All Clients</option>
               {clients.map((c) => (
                 <option key={c.id}>{c.name}</option>
@@ -54,9 +78,14 @@ export default function Tasks({
         </div>
 
         <div className="divide-y">
-          {tasks.map((task) => {
-            const client = clients.find((c) => c.id === task.clientId);
-            return (
+          {filteredTasks.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">
+              No tasks found matching your filters
+            </div>
+          ) : (
+            filteredTasks.map((task) => {
+              const client = clients.find((c) => c.id === task.clientId);
+              return (
               <div key={task.id} className="p-6 hover:bg-gray-50">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -116,8 +145,9 @@ export default function Tasks({
                   </div>
                 </div>
               </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
     </div>
