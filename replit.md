@@ -36,7 +36,13 @@ A clickable demo for a Philippine VA-focused productivity SaaS built with React,
   - Add/edit tasks with client assignment
   - Click any task to edit details
   - Start/stop timer for active tasks
-- **Time Tracking**: Timer functionality and time entry management
+  - Filter tasks by client, status, and search text
+- **Time Tracking**: Kanban-style board view for visual task management
+  - 4-column board (To Do, In Progress, Review, Completed)
+  - Filter tasks by client
+  - Start/stop timer directly from kanban cards
+  - Click cards to edit task details
+  - Active timer banner shows current running task
 - **Reports**: Analytics and performance reports
 - **Billing**: Invoice generation and billing management
   - PDF invoice generation with jsPDF
@@ -51,6 +57,13 @@ Configured for autoscale deployment:
 - Run command: `npx vite preview --host 0.0.0.0 --port 5000`
 
 ## Recent Changes
+- 2025-09-30: Enhanced filtering and kanban board view
+  - Added client, status, and search filtering to Tasks page
+  - Redesigned Time Tracking page to kanban-style board view with 4 columns
+  - Added client filtering to Time Tracking kanban board
+  - Integrated timer controls directly into kanban cards
+  - Added active timer banner for better visibility
+
 - 2025-09-30: Added interactive features
   - Implemented client add/edit modal with full form validation
   - Implemented task add/edit modal with client selection
