@@ -1,8 +1,6 @@
-:80 {
-    root * /app/dist
-    file_server
-
-    header {
-        Content-Type application/javascript js
-    }
+:8080 {
+  root * /app/dist
+  encode gzip zstd
+  try_files {path} /index.html
+  file_server
 }
