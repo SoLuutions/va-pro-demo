@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { DollarSign, FileText, Clock, CheckCircle } from "lucide-react";
+import { jsPDF } from "jspdf";
 
 export default function Billing({ clients, timeEntries, formatCurrency }) {
   const [invoiceClient, setInvoiceClient] = useState(clients[0]?.id || null);
@@ -17,11 +18,72 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
 
   const data = invoiceClient ? generateInvoiceData(invoiceClient) : null;
 
+  const generatePDF = () => {
+    if (!data) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    doc.setFontSize(24);
+    doc.setFont(undefined, 'bold');
+    doc.text('INVOICE', pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text('Maria Santos - Virtual Assistant', 20, 35);
+    doc.text('PH • Asia/Manila', 20, 42);
+    doc.text('Invoice Date: ' + new Date().toLocaleDateString(), 20, 49);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Bill To:', 20, 65);
+    doc.setFont(undefined, 'normal');
+    doc.text(data.client.name, 20, 72);
+    doc.text(data.client.email, 20, 79);
+    doc.text(data.client.location, 20, 86);
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Description', 20, 105);
+    doc.text('Hours', 110, 105);
+    doc.text('Rate', 140, 105);
+    doc.text('Amount', 170, 105);
+    
+    doc.setFont(undefined, 'normal');
+    let yPos = 115;
+    
+    data.entries.forEach((entry, i) => {
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.text(entry.description.substring(0, 40), 20, yPos);
+      doc.text(entry.duration.toFixed(2), 110, yPos);
+      doc.text(formatCurrency(data.client.rate), 140, yPos);
+      doc.text(formatCurrency(entry.duration * data.client.rate), 170, yPos);
+      yPos += 7;
+    });
+    
+    yPos += 10;
+    doc.setFont(undefined, 'bold');
+    doc.text('Subtotal:', 140, yPos);
+    doc.text(formatCurrency(data.subtotal), 170, yPos);
+    
+    yPos += 7;
+    doc.text('VAT (12%):', 140, yPos);
+    doc.text(formatCurrency(data.tax), 170, yPos);
+    
+    yPos += 10;
+    doc.setFontSize(12);
+    doc.text('Total:', 140, yPos);
+    doc.text(formatCurrency(data.total), 170, yPos);
+    
+    doc.save(`Invoice-${data.client.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Invoice & Billing</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
+        <button onClick={generatePDF} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
           <FileText className="h-4 w-4" />
           <span>Generate Invoice</span>
         </button>
@@ -74,7 +136,7 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
             </div>
 
             <div className="flex space-x-4">
-              <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Generate PDF</button>
+              <button onClick={generatePDF} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Generate PDF</button>
               <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Generate QR</button>
             </div>
           </div>

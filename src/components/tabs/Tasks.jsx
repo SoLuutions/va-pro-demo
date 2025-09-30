@@ -105,10 +105,13 @@ export default function Tasks({
                       </button>
                     )}
                     <button
-                      onClick={() => setSelectedTask(task)}
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setShowNewTaskModal(true);
+                      }}
                       className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200"
                     >
-                      View
+                      Edit
                     </button>
                   </div>
                 </div>

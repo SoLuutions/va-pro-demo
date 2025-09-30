@@ -7,6 +7,8 @@ import {
   Clock,
   DollarSign,
 } from "lucide-react";
+import ClientModal from "./ClientModal";
+import TaskModal from "./TaskModal";
 
 const Dashboard = React.lazy(() => import("./tabs/Dashboard"));
 const Clients = React.lazy(() => import("./tabs/Clients"));
@@ -199,6 +201,31 @@ const VADemo = () => {
           {activeTab === "billing" && <Billing {...shared} />}
         </React.Suspense>
       </main>
+
+      {showNewClientModal && (
+        <ClientModal
+          client={selectedClient}
+          clients={clients}
+          setClients={setClients}
+          onClose={() => {
+            setShowNewClientModal(false);
+            setSelectedClient(null);
+          }}
+        />
+      )}
+
+      {showNewTaskModal && (
+        <TaskModal
+          task={selectedTask}
+          tasks={tasks}
+          setTasks={setTasks}
+          clients={clients}
+          onClose={() => {
+            setShowNewTaskModal(false);
+            setSelectedTask(null);
+          }}
+        />
+      )}
     </div>
   );
 };

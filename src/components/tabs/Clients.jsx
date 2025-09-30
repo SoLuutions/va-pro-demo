@@ -2,7 +2,7 @@
 import React from "react";
 import { Plus, Building2, Mail, MapPin, Globe } from "lucide-react";
 
-export default function Clients({ clients, setSelectedClient, setShowNewClientModal }) {
+export default function Clients({ clients, setSelectedClient, setShowNewClientModal, setClients }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -21,7 +21,10 @@ export default function Clients({ clients, setSelectedClient, setShowNewClientMo
           <div
             key={client.id}
             className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => setSelectedClient(client)}
+            onClick={() => {
+              setSelectedClient(client);
+              setShowNewClientModal(true);
+            }}
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-3">
