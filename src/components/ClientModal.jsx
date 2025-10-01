@@ -6,7 +6,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
     name: "",
     email: "",
     phone: "",
-    timezone: "",
+    timezone: "America/New_York",
     location: "",
     rate: "",
     currency: "USD",
@@ -14,6 +14,9 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
     notes: "",
     projects: "",
     status: "Active",
+    dailyTimeLimitMin: "",
+    timeSlots: [],
+    enforceTimeSlots: false
   });
 
   useEffect(() => {
@@ -104,13 +107,20 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
-              <input
-                type="text"
+              <select
                 value={formData.timezone}
                 onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., PST (UTC-8)"
-              />
+              >
+                <option value="America/New_York">America/New York (EST)</option>
+                <option value="America/Los_Angeles">America/Los Angeles (PST)</option>
+                <option value="America/Chicago">America/Chicago (CST)</option>
+                <option value="Europe/London">Europe/London (GMT)</option>
+                <option value="Europe/Paris">Europe/Paris (CET)</option>
+                <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
+                <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+              </select>
             </div>
 
             <div>
@@ -186,6 +196,52 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Additional notes about the client..."
             />
+          </div>
+
+          <div className="border-t pt-4 space-y-4">
+            <h4 className="font-medium text-gray-900">Time Tracking Settings</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Daily Time Limit (minutes)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.dailyTimeLimitMin || ""}
+                  onChange={(e) => setFormData({ ...formData, dailyTimeLimitMin: e.target.value ? parseInt(e.target.value) : null })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="240 (4 hours)"
+                />
+                <p className="text-xs text-gray-500 mt-1">Leave empty for no limit</p>
+              </div>
+
+              <div className="flex items-center pt-6">
+                <input
+                  type="checkbox"
+                  id="enforceTimeSlots"
+                  checked={formData.enforceTimeSlots || false}
+                  onChange={(e) => setFormData({ ...formData, enforceTimeSlots: e.target.checked })}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="enforceTimeSlots" className="ml-2 block text-sm text-gray-700">
+                  Enforce time slots (block timer outside hours)
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Working Time Slots (in client's timezone)
+              </label>
+              <div className="text-xs text-gray-500 mb-2">
+                Example: 8am-4pm for an 8-hour workday
+              </div>
+              <div className="text-xs text-blue-600 mb-2">
+                Times will be converted to GMT+8 for your schedule
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

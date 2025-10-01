@@ -8,6 +8,8 @@ A clickable demo for a Philippine VA-focused productivity SaaS built with React,
 - **Build Tool**: Vite 5
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
+- **Timezone Handling**: Luxon (GMT+8 / Asia/Manila default)
+- **State Persistence**: localStorage
 - **Development Server**: Runs on port 5000
 
 ## Project Structure
@@ -15,34 +17,71 @@ A clickable demo for a Philippine VA-focused productivity SaaS built with React,
 ├── src/
 │   ├── components/
 │   │   ├── tabs/          # Tab components (Dashboard, Clients, Tasks, etc.)
-│   │   ├── ClientModal.jsx # Client add/edit modal component
-│   │   ├── TaskModal.jsx   # Task add/edit modal component
-│   │   └── VADemo.jsx     # Main demo component with state management
-│   ├── App.jsx            # Root application component
-│   ├── main.jsx           # Application entry point
-│   └── index.css          # Global styles
-├── index.html             # HTML template
-├── vite.config.js         # Vite configuration
-├── tailwind.config.js     # Tailwind configuration
-└── package.json           # Dependencies and scripts
+│   │   ├── ClientModal.jsx # Client add/edit modal with time limits
+│   │   ├── TaskModal.jsx   # Task add/edit modal with estimates
+│   │   ├── FocusMode.jsx   # Full-screen focus mode timer
+│   │   ├── ProfileModal.jsx # User profile editor
+│   │   ├── Toast.jsx       # In-app toast notifications
+│   │   └── VADemo.jsx      # Main demo component with state management
+│   ├── utils/
+│   │   ├── timeWindow.js   # Time slot and limit enforcement
+│   │   ├── notifications.js # Browser notifications manager
+│   │   └── localStorage.js  # State persistence utilities
+│   ├── App.jsx             # Root application component
+│   ├── main.jsx            # Application entry point
+│   └── index.css           # Global styles with animations
+├── index.html              # HTML template
+├── vite.config.js          # Vite configuration
+├── tailwind.config.js      # Tailwind configuration
+└── package.json            # Dependencies and scripts
 ```
 
 ## Features
 - **Dashboard**: Overview of hours, active tasks, clients, and earnings
+- **User Profile**: Editable profile with timezone settings
+  - Click profile in header to edit
+  - Set name, email, timezone, avatar
+  - Reset to blank slate option
 - **Clients**: Client management with details, rates, and project tracking
   - Add/edit clients with full form validation
+  - Daily time limits per client (e.g., 4 hours/day)
+  - Working time slots with timezone conversion to GMT+8
+  - Enforce time slots (block timer outside hours)
   - Click any client to edit details
-- **Tasks**: Task management with priorities, status, and time tracking
+- **Tasks**: Task management with priorities, status, and countdown timers
   - Add/edit tasks with client assignment
+  - Estimated time for tasks (countdown timer)
+  - Allow/disallow overrun past estimated time
   - Click any task to edit details
-  - Start/stop timer for active tasks
+  - Start/pause/stop timer with enforcement of client limits
+  - Timer persists across page reloads
   - Filter tasks by client, status, and search text
+- **Advanced Timer Features**:
+  - **Countdown Mode**: Timer counts down from estimated time
+  - **Overrun Tracking**: Shows overtime when exceeding estimates
+  - **Focus Mode**: Full-screen timer view with:
+    - Large countdown display
+    - Current date and time
+    - Task and client details
+    - Break button (pause without logging)
+    - Stop timer button
+    - Exit focus mode (timer continues)
+    - ESC key to exit
+  - **Client Time Enforcement**:
+    - Blocks timer if outside client's working hours
+    - Blocks timer if daily limit reached
+    - Notifications for time slot starts
+  - **Notifications**:
+    - Browser notifications (with permission)
+    - In-app toast messages
+    - Alerts for time limits, task completion, slot starts
 - **Time Tracking**: Kanban-style board view for visual task management
   - 4-column board (To Do, In Progress, Review, Completed)
   - Filter tasks by client
   - Start/stop timer directly from kanban cards
   - Click cards to edit task details
-  - Active timer banner shows current running task
+  - Active timer banner shows current running task with countdown
+  - Enter focus mode button in active timer banner
 - **Reports**: Analytics and performance reports
 - **Billing**: Invoice generation and billing management
   - PDF invoice generation with jsPDF
@@ -56,7 +95,48 @@ Configured for autoscale deployment:
 - Build command: `npm run build`
 - Run command: `npx vite preview --host 0.0.0.0 --port 5000`
 
+## Technical Details
+- **Timezone Management**: All times converted to Asia/Manila (GMT+8) for display while storing client-specific timezone data
+- **Timer Architecture**: Timestamp-based timer system eliminates drift and enables recovery on page reload
+- **State Persistence**: All data (clients, tasks, time entries, user profile, active timer) saved to localStorage
+- **Notifications**: Dual notification system with browser notifications (permission-gated) and in-app toasts
+- **Break Tracking**: Break time is tracked separately and excluded from billable time
+
 ## Recent Changes
+- 2025-10-01: Comprehensive timer system overhaul
+  - **Countdown Timers**: Tasks now have estimated time and count down instead of up
+  - **Client Time Management**:
+    - Added daily time limits per client (in minutes)
+    - Added working time slots with timezone support
+    - Time slot enforcement to block timers outside working hours
+    - All times converted to GMT+8 (Asia/Manila) for VA schedule
+  - **Focus Mode**: Full-screen distraction-free timer view
+    - Large countdown display with overrun tracking
+    - Break functionality (pause without stopping)
+    - Current time and date display
+    - Task and client information
+    - Exit without stopping timer
+  - **Notifications & Reminders**:
+    - Browser notifications for time limits and task completion
+    - In-app toast notifications for all timer events
+    - Permission management for browser notifications
+  - **User Profile System**:
+    - Editable profile accessible from header
+    - Timezone selection for user
+    - Blank slate reset option
+  - **Enhanced Data Persistence**:
+    - All state saved to localStorage
+    - Active timer recovery on page reload
+    - Timestamp-based timer prevents drift
+    - Break time tracking separate from work time
+  - **Updated Modals**:
+    - ClientModal: Added daily limits, time slots, timezone selection
+    - TaskModal: Added estimated time, allow overrun checkbox
+  - **Utilities**:
+    - timeWindow.js: Time slot validation, daily limit tracking, timezone conversion
+    - notifications.js: Browser and in-app notification management
+    - localStorage.js: State persistence utilities
+
 - 2025-09-30: Enhanced filtering and kanban board view
   - Added client, status, and search filtering to Tasks page
   - Redesigned Time Tracking page to kanban-style board view with 4 columns
