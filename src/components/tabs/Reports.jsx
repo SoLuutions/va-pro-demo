@@ -1,20 +1,17 @@
 
 import React from "react";
-import { Clock, DollarSign, BarChart3, Building2 } from "lucide-react";
+import { Clock, CheckCircle, BarChart3, Building2 } from "lucide-react";
 
-export default function Reports({ clients, tasks, timeEntries, formatCurrency }) {
+export default function Reports({ clients, tasks, timeEntries }) {
   const totalHours = timeEntries.reduce((s, e) => s + e.duration, 0);
-  const totalEarnings = timeEntries.filter((e) => e.billable).reduce((s, e) => {
-    const c = clients.find((cl) => cl.id === e.clientId);
-    return s + e.duration * (c?.rate || 0);
-  }, 0);
-  const avgRate = totalHours ? totalEarnings / totalHours : 0;
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((t) => t.status === "Completed").length;
 
   const clientBreakdown = clients.map((c) => {
     const entries = timeEntries.filter((e) => e.clientId === c.id);
     const hours = entries.reduce((s, e) => s + e.duration, 0);
-    const earnings = entries.filter((e) => e.billable).reduce((s, e) => s + e.duration * c.rate, 0);
-    return { client: c.name, hours, earnings, rate: c.rate };
+    const taskCount = tasks.filter((t) => t.clientId === c.id).length;
+    return { client: c.name, hours, taskCount };
   }).filter((i) => i.hours > 0);
 
   return (
@@ -35,9 +32,9 @@ export default function Reports({ clients, tasks, timeEntries, formatCurrency })
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <SummaryCard icon={Clock} label="Total Hours" value={`${totalHours.toFixed(1)}`} />
-        <SummaryCard icon={DollarSign} label="Total Earnings" value={formatCurrency(totalEarnings)} />
-        <SummaryCard icon={BarChart3} label="Avg. Rate" value={formatCurrency(avgRate)} />
+        <SummaryCard icon={Clock} label="Total Hours" value={`${totalHours.toFixed(1)}h`} />
+        <SummaryCard icon={CheckCircle} label="Completed Tasks" value={completedTasks} />
+        <SummaryCard icon={BarChart3} label="Total Tasks" value={totalTasks} />
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border">
@@ -53,12 +50,11 @@ export default function Reports({ clients, tasks, timeEntries, formatCurrency })
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">{item.client}</h4>
-                  <p className="text-sm text-gray-500">{formatCurrency(item.rate)}/hour</p>
+                  <p className="text-sm text-gray-500">{item.taskCount} tasks</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="font-semibold text-gray-900">{item.hours.toFixed(1)}h</p>
-                <p className="text-sm text-green-600">{formatCurrency(item.earnings)}</p>
               </div>
             </div>
           ))}

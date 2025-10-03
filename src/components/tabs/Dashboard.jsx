@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Timer, CheckCircle, Users, DollarSign, Square } from "lucide-react";
+import { Timer, CheckCircle, Users, Square, ListChecks } from "lucide-react";
 
 export default function Dashboard({
   clients,
@@ -12,18 +12,12 @@ export default function Dashboard({
   getStatusColor,
   getPriorityColor,
   getClientName,
-  formatCurrency,
   stopTimerAndLog,
 }) {
   const TODAY = "2025-09-26";
   const totalHoursToday = timeEntries.filter((e) => e.date === TODAY).reduce((s, e) => s + e.duration, 0);
   const activeTasksCount = tasks.filter((t) => t.status === "In Progress").length;
-  const totalEarningsToday = timeEntries
-    .filter((e) => e.date === TODAY && e.billable)
-    .reduce((sum, e) => {
-      const client = clients.find((c) => c.id === e.clientId);
-      return sum + e.duration * (client?.rate || 0);
-    }, 0);
+  const completedTasksCount = tasks.filter((t) => t.status === "Completed").length;
   const activeTask = tasks.find((t) => t.id === activeTimer);
 
   return (
@@ -32,7 +26,7 @@ export default function Dashboard({
         <Card icon={<Timer className="h-6 w-6 text-blue-600" />} label="Hours Today" value={totalHoursToday.toFixed(1)} color="bg-blue-100" />
         <Card icon={<CheckCircle className="h-6 w-6 text-green-600" />} label="Active Tasks" value={activeTasksCount} color="bg-green-100" />
         <Card icon={<Users className="h-6 w-6 text-purple-600" />} label="Active Clients" value={clients.length} color="bg-purple-100" />
-        <Card icon={<DollarSign className="h-6 w-6 text-yellow-600" />} label="Earnings Today" value={formatCurrency(totalEarningsToday)} color="bg-yellow-100" />
+        <Card icon={<ListChecks className="h-6 w-6 text-indigo-600" />} label="Completed Tasks" value={completedTasksCount} color="bg-indigo-100" />
       </div>
 
       {activeTask && (

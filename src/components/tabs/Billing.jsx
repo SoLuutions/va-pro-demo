@@ -1,19 +1,16 @@
 
 import React, { useState } from "react";
-import { DollarSign, FileText, Clock, CheckCircle } from "lucide-react";
+import { FileText, Clock, CheckCircle, ListChecks } from "lucide-react";
 import { jsPDF } from "jspdf";
 
-export default function Billing({ clients, timeEntries, formatCurrency }) {
+export default function Billing({ clients, tasks, timeEntries }) {
   const [invoiceClient, setInvoiceClient] = useState(clients[0]?.id || null);
 
   const generateInvoiceData = (clientId) => {
     const client = clients.find((c) => c.id === clientId);
     const entries = timeEntries.filter((e) => e.clientId === clientId && e.billable);
     const hours = entries.reduce((s, e) => s + e.duration, 0);
-    const subtotal = hours * (client?.rate || 0);
-    const tax = subtotal * 0.12;
-    const total = subtotal + tax;
-    return { client, entries, hours, subtotal, tax, total };
+    return { client, entries, hours };
   };
 
   const data = invoiceClient ? generateInvoiceData(invoiceClient) : null;
@@ -26,16 +23,16 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
     
     doc.setFontSize(24);
     doc.setFont(undefined, 'bold');
-    doc.text('INVOICE', pageWidth / 2, 20, { align: 'center' });
+    doc.text('TIME INVOICE', pageWidth / 2, 20, { align: 'center' });
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
-    doc.text('Maria Santos - Virtual Assistant', 20, 35);
+    doc.text('Virtual Assistant - Time Report', 20, 35);
     doc.text('PH • Asia/Manila', 20, 42);
     doc.text('Invoice Date: ' + new Date().toLocaleDateString(), 20, 49);
     
     doc.setFont(undefined, 'bold');
-    doc.text('Bill To:', 20, 65);
+    doc.text('For:', 20, 65);
     doc.setFont(undefined, 'normal');
     doc.text(data.client.name, 20, 72);
     doc.text(data.client.email, 20, 79);
@@ -43,9 +40,7 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
     
     doc.setFont(undefined, 'bold');
     doc.text('Description', 20, 105);
-    doc.text('Hours', 110, 105);
-    doc.text('Rate', 140, 105);
-    doc.text('Amount', 170, 105);
+    doc.text('Hours', 140, 105);
     
     doc.setFont(undefined, 'normal');
     let yPos = 115;
@@ -55,34 +50,24 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
         doc.addPage();
         yPos = 20;
       }
-      doc.text(entry.description.substring(0, 40), 20, yPos);
-      doc.text(entry.duration.toFixed(2), 110, yPos);
-      doc.text(formatCurrency(data.client.rate), 140, yPos);
-      doc.text(formatCurrency(entry.duration * data.client.rate), 170, yPos);
+      doc.text(entry.description.substring(0, 50), 20, yPos);
+      doc.text(entry.duration.toFixed(2) + 'h', 140, yPos);
       yPos += 7;
     });
     
     yPos += 10;
-    doc.setFont(undefined, 'bold');
-    doc.text('Subtotal:', 140, yPos);
-    doc.text(formatCurrency(data.subtotal), 170, yPos);
-    
-    yPos += 7;
-    doc.text('VAT (12%):', 140, yPos);
-    doc.text(formatCurrency(data.tax), 170, yPos);
-    
-    yPos += 10;
     doc.setFontSize(12);
-    doc.text('Total:', 140, yPos);
-    doc.text(formatCurrency(data.total), 170, yPos);
+    doc.setFont(undefined, 'bold');
+    doc.text('Total Hours:', 110, yPos);
+    doc.text(data.hours.toFixed(2) + 'h', 140, yPos);
     
-    doc.save(`Invoice-${data.client.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`Time-Invoice-${data.client.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Invoice & Billing</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Time Invoice & Billing</h2>
         <button onClick={generatePDF} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
           <FileText className="h-4 w-4" />
           <span>Generate Invoice</span>
@@ -90,10 +75,10 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard icon={DollarSign} label="Pending Amount" value="$2,156.50" color="green" />
+        <StatCard icon={Clock} label="Total Hours Logged" value="142.5h" color="green" />
         <StatCard icon={FileText} label="Invoices Sent" value="8" color="blue" />
-        <StatCard icon={Clock} label="Overdue" value="$320.00" color="yellow" />
-        <StatCard icon={CheckCircle} label="Paid This Month" value="$4,280.75" color="purple" />
+        <StatCard icon={ListChecks} label="Completed Tasks" value="24" color="yellow" />
+        <StatCard icon={CheckCircle} label="Active Clients" value={clients.length} color="purple" />
       </div>
 
       {data && (
@@ -128,11 +113,7 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
             <div className="bg-gray-50 p-6 rounded-lg space-y-3">
               <h4 className="font-semibold text-gray-900 mb-2">Invoice Preview</h4>
               <Row label="Client" value={data.client.name} />
-              <Row label="Total Hours" value={`${data.hours.toFixed(2)}h`} />
-              <Row label="Rate" value={formatCurrency(data.client.rate)} />
-              <Row label="Subtotal" value={formatCurrency(data.subtotal)} />
-              <Row label="VAT (12%)" value={formatCurrency(data.tax)} />
-              <Row label="Total" value={<span className="font-bold text-lg">{formatCurrency(data.total)}</span>} />
+              <Row label="Total Hours" value={<span className="font-bold text-lg">{data.hours.toFixed(2)}h</span>} />
             </div>
 
             <div className="flex space-x-4">
@@ -149,9 +130,9 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
         </div>
         <div className="divide-y">
           {[
-            { id: "INV-001", client: "TechStart Solutions", amount: 675.0, status: "Paid", date: "2025-09-20" },
-            { id: "INV-002", client: "E-commerce Plus", amount: 1123.2, status: "Pending", date: "2025-09-25" },
-            { id: "INV-003", client: "Digital Marketing Hub", amount: 896.0, status: "Overdue", date: "2025-09-15" },
+            { id: "INV-001", client: "TechStart Solutions", hours: 45.0, status: "Sent", date: "2025-09-20" },
+            { id: "INV-002", client: "E-commerce Plus", hours: 62.4, status: "Pending", date: "2025-09-25" },
+            { id: "INV-003", client: "Digital Marketing Hub", hours: 38.7, status: "Sent", date: "2025-09-15" },
           ].map((inv) => (
             <div key={inv.id} className="p-6 flex items-center justify-between hover:bg-gray-50">
               <div>
@@ -159,11 +140,10 @@ export default function Billing({ clients, timeEntries, formatCurrency }) {
                 <p className="text-sm text-gray-500">{inv.client} • {inv.date}</p>
               </div>
               <div className="flex items-center space-x-4">
-                <p className="font-semibold text-gray-900">{formatCurrency(inv.amount)}</p>
+                <p className="font-semibold text-gray-900">{inv.hours.toFixed(1)}h</p>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  inv.status === "Paid" ? "bg-green-100 text-green-800" :
-                  inv.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
-                  "bg-red-100 text-red-800"
+                  inv.status === "Sent" ? "bg-green-100 text-green-800" :
+                  "bg-yellow-100 text-yellow-800"
                 }`}>
                   {inv.status}
                 </span>
