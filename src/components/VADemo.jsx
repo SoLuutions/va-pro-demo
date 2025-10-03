@@ -357,6 +357,52 @@ const VADemo = () => {
     addToast(`Timer stopped. Logged ${hours.toFixed(2)} hours`, 'success');
   };
 
+  const markTaskAsDone = () => {
+    if (!activeTimer) return;
+    
+    const task = tasks.find((t) => t.id === activeTimer);
+    if (!task) {
+      setActiveTimer(null);
+      setTimerStartedAt(null);
+      setTimerSeconds(0);
+      setTotalBreakTime(0);
+      return;
+    }
+
+    const hours = +(timerSeconds / 3600).toFixed(2);
+    const timeInfo = getTaskTimeRemaining(task, timerSeconds);
+    
+    const newEntry = {
+      id: Date.now(),
+      taskId: task.id,
+      clientId: task.clientId,
+      duration: hours,
+      date: DateTime.now().setZone('Asia/Manila').toISODate(),
+      billable: true,
+      description: timeInfo.isOverrun 
+        ? `Task completed (${formatTimeRemaining(timeInfo.overrunSeconds)} overtime): ${task.title}`
+        : `Task completed: ${task.title}`,
+    };
+
+    setTimeEntries((prev) => [...prev, newEntry]);
+    setTasks((prev) => prev.map((t) => 
+      t.id === task.id ? { 
+        ...t, 
+        timeSpent: +(t.timeSpent + hours).toFixed(2),
+        status: 'Completed'
+      } : t
+    ));
+    
+    setActiveTimer(null);
+    setTimerStartedAt(null);
+    setTimerSeconds(0);
+    setTotalBreakTime(0);
+    setIsOnBreak(false);
+    setShowFocusMode(false);
+    
+    addToast(`Task completed! Logged ${hours.toFixed(2)} hours`, 'success');
+  };
+
   const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
     const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
@@ -402,7 +448,7 @@ const VADemo = () => {
     activeTimer, setActiveTimer: handleStartTimer, 
     timerSeconds, setTimerSeconds,
     formatTime, getStatusColor, getPriorityColor, getClientName, formatCurrency,
-    stopTimerAndLog, selectedClient, setSelectedClient, selectedTask, setSelectedTask,
+    stopTimerAndLog, markTaskAsDone, selectedClient, setSelectedClient, selectedTask, setSelectedTask,
     showNewTaskModal, setShowNewTaskModal, showNewClientModal, setShowNewClientModal,
     showInvoiceModal, setShowInvoiceModal, addToast,
     getTaskTimeRemaining, formatTimeRemaining
@@ -508,6 +554,12 @@ const VADemo = () => {
                 <Maximize2 className="h-5 w-5" />
               </button>
               <button
+                onClick={markTaskAsDone}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-medium"
+              >
+                Mark as Done
+              </button>
+              <button
                 onClick={stopTimerAndLog}
                 className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg font-medium"
               >
@@ -569,6 +621,7 @@ const VADemo = () => {
           timerSeconds={timerSeconds}
           onBreak={handleBreak}
           onStop={stopTimerAndLog}
+          onMarkAsDone={markTaskAsDone}
           onExit={() => setShowFocusMode(false)}
           isOnBreak={isOnBreak}
         />

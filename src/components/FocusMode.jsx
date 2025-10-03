@@ -1,6 +1,6 @@
 import React from 'react';
 import { DateTime } from 'luxon';
-import { X, Coffee, Square } from 'lucide-react';
+import { X, Coffee, Square, CheckCircle } from 'lucide-react';
 import { getTaskTimeRemaining, formatTimeRemaining } from '../utils/timeWindow';
 
 export default function FocusMode({
@@ -9,6 +9,7 @@ export default function FocusMode({
   timerSeconds,
   onBreak,
   onStop,
+  onMarkAsDone,
   onExit,
   isOnBreak
 }) {
@@ -111,6 +112,14 @@ export default function FocusMode({
           >
             <Coffee className="h-5 w-5" />
             <span>{isOnBreak ? 'End Break & Resume' : 'Take a Break'}</span>
+          </button>
+
+          <button
+            onClick={onMarkAsDone}
+            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-base flex items-center space-x-2 transition-all"
+          >
+            <CheckCircle className="h-5 w-5" />
+            <span>Mark as Done</span>
           </button>
 
           <button
