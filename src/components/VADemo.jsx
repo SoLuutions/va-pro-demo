@@ -7,7 +7,9 @@ import {
   Clock,
   DollarSign,
   Maximize2,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 import ClientModal from "./ClientModal";
 import TaskModal from "./TaskModal";
 import ProfileModal from "./ProfileModal";
@@ -25,6 +27,7 @@ const Reports = React.lazy(() => import("./tabs/Reports"));
 const Billing = React.lazy(() => import("./tabs/Billing"));
 
 const VADemo = () => {
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [activeTimer, setActiveTimer] = useState(null);
   const [timerStartedAt, setTimerStartedAt] = useState(null);
@@ -455,6 +458,13 @@ const VADemo = () => {
                 className="h-8 w-8 rounded-full bg-blue-200 cursor-pointer hover:bg-blue-300"
                 onClick={() => setShowProfileModal(true)}
               />
+              <button
+                onClick={logout}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
             </div>
           </div>
         </div>

@@ -4,7 +4,9 @@ const STORAGE_KEYS = {
   TIME_ENTRIES: 'va_pro_time_entries',
   ACTIVE_TIMER: 'va_pro_active_timer',
   USER_PROFILE: 'va_pro_user_profile',
-  BREAKS: 'va_pro_breaks'
+  BREAKS: 'va_pro_breaks',
+  AUTH_USER: 'va_pro_auth_user',
+  REGISTERED_USERS: 'va_pro_registered_users'
 };
 
 export function saveToStorage(key, data) {
