@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from "react";
-import { Plus, Search, Building2, Calendar, Clock, Play, Pause } from "lucide-react";
+import { Plus, Search, Building2, Calendar, Clock, Play, Pause, ExternalLink, FileText } from "lucide-react";
 
 export default function Tasks({
   clients,
@@ -99,6 +99,50 @@ export default function Tasks({
                       </span>
                     </div>
                     <p className="text-gray-600 mb-3">{task.description}</p>
+                    
+                    {(task.fileLinks || task.outputLinks) && (
+                      <div className="mb-3 space-y-2">
+                        {task.fileLinks && (
+                          <div className="flex items-start space-x-2">
+                            <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex flex-wrap gap-2">
+                              {task.fileLinks.split('\n').filter(link => link.trim()).map((link, i) => (
+                                <a
+                                  key={i}
+                                  href={link.trim()}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                                >
+                                  <span>File {i + 1}</span>
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {task.outputLinks && (
+                          <div className="flex items-start space-x-2">
+                            <ExternalLink className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex flex-wrap gap-2">
+                              {task.outputLinks.split('\n').filter(link => link.trim()).map((link, i) => (
+                                <a
+                                  key={i}
+                                  href={link.trim()}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-green-600 hover:text-green-800 flex items-center space-x-1"
+                                >
+                                  <span>Output {i + 1}</span>
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className="flex items-center space-x-6 text-sm text-gray-500">
                       <span className="flex items-center">
                         <Building2 className="h-4 w-4 mr-1" />
