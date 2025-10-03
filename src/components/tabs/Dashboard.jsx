@@ -1,5 +1,6 @@
 
 import React from "react";
+import { DateTime } from "luxon";
 import { Timer, CheckCircle, Users, Square, ListChecks } from "lucide-react";
 
 export default function Dashboard({
@@ -14,7 +15,7 @@ export default function Dashboard({
   getClientName,
   stopTimerAndLog,
 }) {
-  const TODAY = "2025-09-26";
+  const TODAY = DateTime.now().setZone('Asia/Manila').toISODate();
   const totalHoursToday = timeEntries.filter((e) => e.date === TODAY).reduce((s, e) => s + e.duration, 0);
   const activeTasksCount = tasks.filter((t) => t.status === "In Progress").length;
   const completedTasksCount = tasks.filter((t) => t.status === "Completed").length;
