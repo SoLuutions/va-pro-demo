@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from "react";
-import { Plus, Search, Building2, Calendar, Clock, Play, Pause, ExternalLink, FileText } from "lucide-react";
+import { DateTime } from "luxon";
+import { Plus, Search, Building2, Calendar, Clock, Play, Pause, ExternalLink, FileText, List, Grid } from "lucide-react";
 
 export default function Tasks({
   clients,
@@ -16,6 +17,7 @@ export default function Tasks({
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [clientFilter, setClientFilter] = useState("All Clients");
+  const [viewMode, setViewMode] = useState("list");
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -27,17 +29,74 @@ export default function Tasks({
     });
   }, [tasks, searchText, statusFilter, clientFilter, getClientName]);
 
+  const getCalendarWeeks = () => {
+    const now = DateTime.now().setZone('Asia/Manila');
+    const startOfMonth = now.startOf('month');
+    const endOfMonth = now.endOf('month');
+    const startDate = startOfMonth.startOf('week');
+    const endDate = endOfMonth.endOf('week');
+    
+    const weeks = [];
+    let currentDate = startDate;
+    
+    while (currentDate <= endDate) {
+      const week = [];
+      for (let i = 0; i < 7; i++) {
+        const tasksForDay = filteredTasks.filter(task => 
+          task.dueDate === currentDate.toISODate()
+        );
+        week.push({
+          date: currentDate,
+          tasks: tasksForDay,
+          isCurrentMonth: currentDate.month === now.month
+        });
+        currentDate = currentDate.plus({ days: 1 });
+      }
+      weeks.push(week);
+    }
+    
+    return weeks;
+  };
+
+  const calendarWeeks = viewMode === 'calendar' ? getCalendarWeeks() : [];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Task Management</h2>
-        <button
-          onClick={() => setShowNewTaskModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-        >
-          <Plus className="h-4 w-4" />
-          <span>New Task</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1 rounded-md flex items-center space-x-1 text-sm font-medium transition-colors ${
+                viewMode === 'list' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <List className="h-4 w-4" />
+              <span>List</span>
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`px-3 py-1 rounded-md flex items-center space-x-1 text-sm font-medium transition-colors ${
+                viewMode === 'calendar' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Grid className="h-4 w-4" />
+              <span>Calendar</span>
+            </button>
+          </div>
+          <button
+            onClick={() => setShowNewTaskModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Task</span>
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border">
@@ -77,7 +136,73 @@ export default function Tasks({
           </div>
         </div>
 
-        <div className="divide-y">
+        {viewMode === 'calendar' ? (
+          <div className="p-4">
+            <div className="mb-4 text-center">
+              <h3 className="text-xl font-semibold text-gray-900">
+                {DateTime.now().setZone('Asia/Manila').toFormat('MMMM yyyy')}
+              </h3>
+            </div>
+            <div className="grid grid-cols-7 gap-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="text-center font-semibold text-gray-700 text-sm py-2">
+                  {day}
+                </div>
+              ))}
+              {calendarWeeks.map((week, weekIndex) => (
+                <React.Fragment key={weekIndex}>
+                  {week.map((day, dayIndex) => (
+                    <div
+                      key={dayIndex}
+                      className={`min-h-32 border rounded-lg p-2 ${
+                        day.isCurrentMonth ? 'bg-white' : 'bg-gray-50'
+                      } ${
+                        day.date.toISODate() === DateTime.now().setZone('Asia/Manila').toISODate()
+                          ? 'ring-2 ring-blue-500'
+                          : ''
+                      }`}
+                    >
+                      <div className={`text-sm font-semibold mb-2 ${
+                        day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                      }`}>
+                        {day.date.day}
+                      </div>
+                      <div className="space-y-1">
+                        {day.tasks.slice(0, 3).map(task => {
+                          const client = clients.find(c => c.id === task.clientId);
+                          return (
+                            <button
+                              key={task.id}
+                              onClick={() => {
+                                setSelectedTask(task);
+                                setShowNewTaskModal(true);
+                              }}
+                              className={`w-full text-left px-2 py-1 rounded text-xs hover:opacity-80 transition-opacity ${
+                                task.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                                task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                                task.status === 'Review' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              <div className="font-medium truncate">{task.title}</div>
+                              <div className="text-xs opacity-75 truncate">{client?.name}</div>
+                            </button>
+                          );
+                        })}
+                        {day.tasks.length > 3 && (
+                          <div className="text-xs text-gray-500 text-center py-1">
+                            +{day.tasks.length - 3} more
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="divide-y">
           {filteredTasks.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
               No tasks found matching your filters
@@ -193,6 +318,7 @@ export default function Tasks({
             })
           )}
         </div>
+        )}
       </div>
     </div>
   );
