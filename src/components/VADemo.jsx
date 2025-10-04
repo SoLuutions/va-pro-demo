@@ -66,6 +66,10 @@ const VADemo = () => {
     loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, [])
   );
 
+  const [quickLinks, setQuickLinks] = useState(() => 
+    loadFromStorage(STORAGE_KEYS.QUICK_LINKS, [])
+  );
+
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.CLIENTS, clients);
   }, [clients]);
@@ -81,6 +85,10 @@ const VADemo = () => {
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.USER_PROFILE, userProfile);
   }, [userProfile]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.QUICK_LINKS, quickLinks);
+  }, [quickLinks]);
 
   useEffect(() => {
     const savedTimer = loadFromStorage(STORAGE_KEYS.ACTIVE_TIMER);
@@ -370,7 +378,8 @@ const VADemo = () => {
     showNewTaskModal, setShowNewTaskModal, showNewClientModal, setShowNewClientModal,
     showInvoiceModal, setShowInvoiceModal, addToast,
     getTaskTimeRemaining, formatTimeRemaining,
-    userProfile
+    userProfile,
+    quickLinks, setQuickLinks
   };
 
   const tabs = [
