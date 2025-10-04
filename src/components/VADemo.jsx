@@ -369,7 +369,8 @@ const VADemo = () => {
     stopTimerAndLog, markTaskAsDone, selectedClient, setSelectedClient, selectedTask, setSelectedTask,
     showNewTaskModal, setShowNewTaskModal, showNewClientModal, setShowNewClientModal,
     showInvoiceModal, setShowInvoiceModal, addToast,
-    getTaskTimeRemaining, formatTimeRemaining
+    getTaskTimeRemaining, formatTimeRemaining,
+    userProfile
   };
 
   const tabs = [

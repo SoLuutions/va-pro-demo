@@ -287,13 +287,90 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Working Time Slots (in client's timezone)
+                Working Time Slots
               </label>
               <div className="text-xs text-gray-500 mb-2">
-                Example: 8am-4pm for an 8-hour workday
+                Set the client's working hours (e.g., 4:00 AM to 3:00 PM)
               </div>
-              <div className="text-xs text-blue-600 mb-2">
-                Times will be converted to GMT+8 for your schedule
+              <div className="text-xs text-blue-600 mb-3">
+                Times will be converted to GMT+8 (Philippine time) for your schedule
+              </div>
+              
+              <div className="space-y-3">
+                {formData.timeSlots.map((slot, index) => (
+                  <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1 grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Start Time</label>
+                        <input
+                          type="time"
+                          value={slot.start}
+                          onChange={(e) => {
+                            const newSlots = [...formData.timeSlots];
+                            newSlots[index].start = e.target.value;
+                            setFormData({ ...formData, timeSlots: newSlots });
+                          }}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">End Time</label>
+                        <input
+                          type="time"
+                          value={slot.end}
+                          onChange={(e) => {
+                            const newSlots = [...formData.timeSlots];
+                            newSlots[index].end = e.target.value;
+                            setFormData({ ...formData, timeSlots: newSlots });
+                          }}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs text-gray-600 mb-1">Timezone</label>
+                      <select
+                        value={slot.tz}
+                        onChange={(e) => {
+                          const newSlots = [...formData.timeSlots];
+                          newSlots[index].tz = e.target.value;
+                          setFormData({ ...formData, timeSlots: newSlots });
+                        }}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      >
+                        <option value="Asia/Manila">Philippine Time (GMT+8)</option>
+                        <option value="America/New_York">New York (EST/EDT)</option>
+                        <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+                        <option value="Europe/London">London (GMT/BST)</option>
+                        <option value="Asia/Tokyo">Tokyo (JST)</option>
+                        <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+                      </select>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSlots = formData.timeSlots.filter((_, i) => i !== index);
+                        setFormData({ ...formData, timeSlots: newSlots });
+                      }}
+                      className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      timeSlots: [...formData.timeSlots, { start: "04:00", end: "15:00", tz: "Asia/Manila" }]
+                    });
+                  }}
+                  className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                >
+                  + Add Time Slot
+                </button>
               </div>
             </div>
           </div>
