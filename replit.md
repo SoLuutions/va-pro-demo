@@ -38,6 +38,15 @@ A clickable demo for a Philippine VA-focused productivity SaaS built with React,
 
 ## Features
 - **Dashboard**: Overview of hours, active tasks, clients, and earnings
+  - **Quick Links Panel**: Fast access to frequently used tools
+    - Add/edit/delete quick links (Zoom, Slack, Google Drive, etc.)
+    - Customizable links with name, URL, and color
+    - Stored in localStorage for persistence
+  - **Timezone Quick Converter**: Real-time timezone display
+    - Shows current time for all client timezones
+    - Automatically updates every second
+    - Displays client names with their local times
+  - **Calendar Sync**: Placeholder UI for future Google Calendar/Outlook integration
 - **User Profile**: Editable profile with timezone settings
   - Click profile in header to edit
   - Set name, email, timezone, avatar
@@ -52,6 +61,7 @@ A clickable demo for a Philippine VA-focused productivity SaaS built with React,
   - Add/edit tasks with client assignment
   - Estimated time for tasks (countdown timer)
   - Allow/disallow overrun past estimated time
+  - **Google Drive Quick Link**: One-click access to Google Drive when adding file links
   - Click any task to edit details
   - Start/pause/stop timer with enforcement of client limits
   - Timer persists across page reloads
@@ -63,6 +73,11 @@ A clickable demo for a Philippine VA-focused productivity SaaS built with React,
     - Large countdown display
     - Current date and time
     - Task and client details
+    - **Pomodoro Timer**: Toggle 25/5 work/break cycles
+      - 25-minute work sessions
+      - 5-minute break sessions
+      - Auto-phase switching with visual indicators
+      - Purple display for work, green for breaks
     - Break button (pause without logging)
     - Stop timer button
     - Exit focus mode (timer continues)
@@ -103,6 +118,26 @@ Configured for autoscale deployment:
 - **Break Tracking**: Break time is tracked separately and excluded from billable time
 
 ## Recent Changes
+- 2025-10-04: Productivity features enhancement
+  - **Quick Links Panel**: Added customizable quick links dashboard widget
+    - Fast access to Zoom, Slack, Google Drive, and other tools
+    - Add/edit/delete functionality with color customization
+    - Persistent storage with localStorage
+  - **Timezone Quick Converter**: Added real-time timezone widget
+    - Displays current time for all client timezones
+    - Auto-updates every second
+    - Shows client names with their local times in GMT+8
+  - **Google Drive Quick Link**: Added quick access button in Task Modal
+    - One-click access to Google Drive when adding file links
+    - Opens in new tab for easy file management
+  - **Pomodoro Timer in Focus Mode**: Added Pomodoro technique support
+    - Toggle-able 25-minute work / 5-minute break cycles
+    - Auto-phase switching with visual indicators
+    - Purple timer display for work sessions
+    - Green timer display for break sessions
+    - Independent progress bar for Pomodoro cycles
+  - **Calendar Sync UI**: Added placeholder UI for future Google Calendar/Outlook integration
+
 - 2025-10-04: Fresh start configuration for production use
   - **Removed all demo data**: Users now start with a completely blank slate
   - **Custom scrollbar design**: Added sleek, minimal scrollbar styling throughout the app and modals
