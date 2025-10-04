@@ -103,6 +103,21 @@ Configured for autoscale deployment:
 - **Break Tracking**: Break time is tracked separately and excluded from billable time
 
 ## Recent Changes
+- 2025-10-04: Fresh start configuration for production use
+  - **Removed all demo data**: Users now start with a completely blank slate
+  - **Custom scrollbar design**: Added sleek, minimal scrollbar styling throughout the app and modals
+  - **Reports reorganization**: Daily Shift Report moved to top as the most important section
+  - **EOD Report copy feature**: Replaced Print button with "Copy EOD Report" button
+    - Copies formatted EOD report to clipboard in user's specified format:
+      - User's name + EOD Report header
+      - Date and total hours worked
+      - Client-organized task list with time spent, descriptions, and file links
+  - **Enhanced time slot UI**: Added complete time slot input interface in Client Modal
+    - Add/remove multiple time slots per client
+    - Set start and end times for each slot
+    - Select timezone (defaults to Philippine Time/GMT+8)
+    - Visual time slot management with remove functionality
+
 - 2025-10-03: GitHub import setup for Replit environment
   - Fixed npm module installation issues (rollup native module)
   - Updated .gitignore with comprehensive Node.js entries
