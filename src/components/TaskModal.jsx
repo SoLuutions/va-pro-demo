@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, FolderOpen } from "lucide-react";
 
 export default function TaskModal({ task, tasks, setTasks, clients, onClose }) {
   if (clients.length === 0) {
@@ -238,9 +238,20 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose }) {
             <h4 className="font-medium text-gray-900">Files & Output</h4>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                File Links
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  File Links
+                </label>
+                <a 
+                  href="https://drive.google.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                >
+                  <FolderOpen className="h-3 w-3" />
+                  <span>Open Google Drive</span>
+                </a>
+              </div>
               <textarea
                 value={formData.fileLinks || ""}
                 onChange={(e) => setFormData({ ...formData, fileLinks: e.target.value })}
