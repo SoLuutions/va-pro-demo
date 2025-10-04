@@ -47,105 +47,23 @@ const VADemo = () => {
 
   const [userProfile, setUserProfile] = useState(() => 
     loadFromStorage(STORAGE_KEYS.USER_PROFILE, {
-      name: "Maria Santos",
-      email: "maria@example.com",
+      name: "",
+      email: "",
       timezone: "Asia/Manila",
       avatarUrl: ""
     })
   );
 
   const [clients, setClients] = useState(() => 
-    loadFromStorage(STORAGE_KEYS.CLIENTS, [
-      {
-        id: 1, name: "TechStart Solutions", email: "john@techstart.com",
-        phone: "+1-555-0123", timezone: "America/New_York", location: "New York, USA",
-        rate: 15, currency: "USD", billing: "Bi-monthly",
-        notes: "Prefers morning communications. Focus on social media and content creation.",
-        projects: ["Social Media Management", "Content Writing"], status: "Active",
-        totalHours: 45.5, lastActivity: "2 hours ago",
-        dailyTimeLimitMin: 240,
-        timeSlots: [{ start: "09:00", end: "17:00", tz: "America/New_York" }],
-        enforceTimeSlots: false
-      },
-      {
-        id: 2, name: "E-commerce Plus", email: "sarah@ecommerceplus.com",
-        phone: "+1-555-0456", timezone: "America/Los_Angeles", location: "Los Angeles, USA",
-        rate: 18, currency: "USD", billing: "Monthly",
-        notes: "Needs detailed reports. Product research and data entry specialist.",
-        projects: ["Product Research", "Data Entry"], status: "Active",
-        totalHours: 62.3, lastActivity: "1 day ago",
-        dailyTimeLimitMin: null,
-        timeSlots: [],
-        enforceTimeSlots: false
-      },
-      {
-        id: 3, name: "Digital Marketing Hub", email: "mike@dmhub.com",
-        phone: "+44-20-1234-5678", timezone: "Europe/London", location: "London, UK",
-        rate: 20, currency: "USD", billing: "Monthly",
-        notes: "Campaign management and analytics focus. Weekly check-ins required.",
-        projects: ["PPC Management", "Analytics"], status: "Active",
-        totalHours: 38.7, lastActivity: "5 hours ago",
-        dailyTimeLimitMin: 180,
-        timeSlots: [{ start: "08:00", end: "16:00", tz: "Europe/London" }],
-        enforceTimeSlots: true
-      },
-    ])
+    loadFromStorage(STORAGE_KEYS.CLIENTS, [])
   );
 
   const [tasks, setTasks] = useState(() => 
-    loadFromStorage(STORAGE_KEYS.TASKS, [
-      {
-        id: 1, title: "Create Instagram content calendar", 
-        description: "Design 30-day content calendar for Q4 campaign", 
-        clientId: 1, project: "Social Media Management", priority: "High", 
-        status: "In Progress", dueDate: "2025-09-28", timeSpent: 3.5, 
-        billable: true, recurring: "Monthly", 
-        attachments: ["https://drive.google.com/file/d/calendar-template"], 
-        createdAt: "2025-09-24",
-        estimatedMin: 120,
-        allowOverrun: true
-      },
-      {
-        id: 2, title: "Product research - Electronics category", 
-        description: "Research top 50 electronics products for Q4 inventory", 
-        clientId: 2, project: "Product Research", priority: "Medium", 
-        status: "To Do", dueDate: "2025-09-30", timeSpent: 0, 
-        billable: true, recurring: "None", attachments: [], 
-        createdAt: "2025-09-25",
-        estimatedMin: 90,
-        allowOverrun: true
-      },
-      {
-        id: 3, title: "Weekly PPC performance report", 
-        description: "Compile Google Ads performance data and insights", 
-        clientId: 3, project: "PPC Management", priority: "High", 
-        status: "Review", dueDate: "2025-09-27", timeSpent: 2.0, 
-        billable: true, recurring: "Weekly", 
-        attachments: ["https://drive.google.com/file/d/ppc-report-template"], 
-        createdAt: "2025-09-23",
-        estimatedMin: 60,
-        allowOverrun: false
-      },
-      {
-        id: 4, title: "Data entry - Customer database", 
-        description: "Input 200 new customer records into CRM system", 
-        clientId: 2, project: "Data Entry", priority: "Low", 
-        status: "Completed", dueDate: "2025-09-25", timeSpent: 4.2, 
-        billable: true, recurring: "None", attachments: [], 
-        createdAt: "2025-09-22",
-        estimatedMin: 240,
-        allowOverrun: true
-      },
-    ])
+    loadFromStorage(STORAGE_KEYS.TASKS, [])
   );
 
   const [timeEntries, setTimeEntries] = useState(() => 
-    loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, [
-      { id: 1, taskId: 1, clientId: 1, duration: 2.5, date: "2025-09-26", billable: true, description: "Content calendar design" },
-      { id: 2, taskId: 1, clientId: 1, duration: 1.0, date: "2025-09-25", billable: true, description: "Research and planning" },
-      { id: 3, taskId: 3, clientId: 3, duration: 2.0, date: "2025-09-26", billable: true, description: "PPC data analysis" },
-      { id: 4, taskId: 4, clientId: 2, duration: 4.2, date: "2025-09-24", billable: true, description: "Database entry work" },
-    ])
+    loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, [])
   );
 
   useEffect(() => {
