@@ -46,15 +46,14 @@ VA Pro is a full-featured productivity platform that enables virtual assistants 
 - Time-based reports (daily, weekly, monthly)
 - Client-specific time breakdowns
 - Task completion analytics
-- Exportable reports in PDF format
-- Visual charts and graphs
+- PDF export capability (requires jsPDF library)
+- Basic data visualization
 
 ### 6. Billing & Invoicing
-- Generate professional invoices
-- Calculate billable hours automatically
-- Track paid vs. unpaid invoices
-- Client billing history
-- Customizable invoice templates
+- Calculate billable hours based on tracked time
+- Client hourly rate configuration
+- Invoice data management
+- Basic billing history tracking
 
 ### 7. Focus Mode
 - Distraction-free fullscreen workspace
@@ -83,22 +82,25 @@ VA Pro is a full-featured productivity platform that enables virtual assistants 
 - **Redis** - Data storage and caching
 - **Node.js** - Runtime environment
 
-## Database Architecture
+## Data Storage
 
-### Redis (Current Implementation)
-- User data storage
-- Real-time timer state caching
-- Client and task data
-- Time entries
-- Fast key-value operations
-- Data persistence with Redis
+### Current Implementation (Frontend)
+- **localStorage** - All user data is stored client-side in the browser
+  - Client records
+  - Task management
+  - Time entries
+  - User profiles
+  - Timer state persistence
 
-### PostgreSQL (Available for Future Implementation)
-The `DATABASE_URL` environment variable is configured and ready for PostgreSQL integration. Future enhancements can include:
-- User accounts and authentication with PostgreSQL
-- Relational data models for clients, tasks, and time entries
-- Advanced querying and reporting
-- Transaction support for billing and invoices
+### Backend API (Optional Integration)
+- **Express.js** server provides REST endpoints for future Redis integration
+- Generic key-value storage endpoints available but not currently utilized by frontend
+- Endpoints: `/api/data/:userId/:key` (GET/POST/DELETE)
+
+### Available for Future Enhancement
+Both `REDIS_URL` and `DATABASE_URL` environment variables are configured and ready for backend integration:
+- **Redis** - Fast caching, session management, real-time data sync
+- **PostgreSQL** - Relational data models, user authentication, advanced queries
 
 ## Quick Start
 
@@ -194,9 +196,9 @@ The Express backend provides the following API endpoints:
 The Vite dev server supports HMR for instant updates during development.
 
 ### Data Persistence
-- Development uses localStorage for frontend state
-- Backend uses Redis for data storage via Express API
-- PostgreSQL connection available for future enhancement
+- **Current**: All data stored in browser localStorage (client-side only)
+- **Backend**: Express server with Redis endpoints available but not actively used
+- **Future**: Redis and PostgreSQL connections ready for server-side data migration
 
 ### Timezone Handling
 - Default timezone: Asia/Manila (Philippine Time)
@@ -214,7 +216,11 @@ This application can be deployed on Railway or similar platforms:
    - `DATABASE_URL` - (Optional) PostgreSQL connection URL for future use
 4. Railway will automatically build and deploy
 
-**Note**: The current implementation uses Redis for data storage. For production use with PostgreSQL, additional backend code will need to be implemented to utilize the DATABASE_URL connection.
+**Current State**: 
+- The frontend is fully functional and stores all data in browser localStorage
+- The Express backend provides Redis API endpoints but they are not currently integrated with the frontend
+- Only `REDIS_URL` is actively used by the backend; `DATABASE_URL` is configured but unused
+- For production deployment with server-side persistence, frontend components would need to be updated to call the backend API instead of using localStorage
 
 ## Browser Support
 
