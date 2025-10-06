@@ -6,16 +6,23 @@ A clickable demo for a Philippine VA-focused productivity SaaS built with React,
 ## Project Architecture
 - **Frontend Framework**: React 18
 - **Build Tool**: Vite 5
+- **Backend Server**: Express.js (port 3000)
+- **Database**: Redis (Railway)
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
 - **Timezone Handling**: Luxon (GMT+8 / Asia/Manila default)
-- **State Persistence**: localStorage
+- **State Persistence**: localStorage + Redis backend
 - **Development Server**: Runs on port 5000
 
 ## Project Structure
 ```
+├── server/
+│   └── index.js            # Express backend server with Redis connection
 ├── src/
 │   ├── components/
+│   │   ├── auth/           # Authentication components
+│   │   │   ├── Login.jsx
+│   │   │   └── Register.jsx
 │   │   ├── tabs/          # Tab components (Dashboard, Clients, Tasks, etc.)
 │   │   ├── ClientModal.jsx # Client add/edit modal with time limits
 │   │   ├── TaskModal.jsx   # Task add/edit modal with estimates
@@ -23,6 +30,8 @@ A clickable demo for a Philippine VA-focused productivity SaaS built with React,
 │   │   ├── ProfileModal.jsx # User profile editor
 │   │   ├── Toast.jsx       # In-app toast notifications
 │   │   └── VADemo.jsx      # Main demo component with state management
+│   ├── context/
+│   │   └── AuthContext.jsx # Authentication context provider
 │   ├── utils/
 │   │   ├── timeWindow.js   # Time slot and limit enforcement
 │   │   ├── notifications.js # Browser notifications manager
@@ -118,6 +127,24 @@ Configured for autoscale deployment:
 - **Break Tracking**: Break time is tracked separately and excluded from billable time
 
 ## Recent Changes
+- 2025-10-06: Critical bug fixes and backend integration
+  - **Redis Backend Integration**: Connected Railway Redis database for data persistence
+    - Express backend server on port 3000
+    - Redis health check endpoint
+    - API endpoints for data storage and retrieval
+  - **AUD Currency Support**: Added Australian Dollar (AUD) to currency options in Client Modal
+  - **Billing Page Cleanup**: Removed all placeholder data
+    - Stats now calculated from real time entries and tasks
+    - Removed hardcoded "Recent Invoices" section
+  - **Profile Auto-Population**: User profile now auto-fills from authentication context on first login
+  - **Timer Fixes**:
+    - **Pause/Resume Functionality**: Fixed pause button to properly pause/resume timer instead of stopping it
+    - **Task Status Auto-Update**: Tasks automatically change to "In Progress" when timer starts
+    - **Time Logging on Limit**: Timer properly logs time when auto-stopped at task limit
+    - **Daily Limit Enforcement**: Timer auto-stops when client daily time limit is reached
+    - **Sound Notification**: Added audio alert when task time limit is reached
+  - **Enhanced Notifications**: Browser notifications and toast messages for all timer events
+
 - 2025-10-04: Productivity features enhancement
   - **Quick Links Panel**: Added customizable quick links dashboard widget
     - Fast access to Zoom, Slack, Google Drive, and other tools
