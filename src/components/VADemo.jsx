@@ -27,7 +27,7 @@ const Reports = React.lazy(() => import("./tabs/Reports"));
 const Billing = React.lazy(() => import("./tabs/Billing"));
 
 const VADemo = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [activeTimer, setActiveTimer] = useState(null);
   const [timerStartedAt, setTimerStartedAt] = useState(null);
@@ -91,6 +91,16 @@ const VADemo = () => {
   }, [quickLinks]);
 
   useEffect(() => {
+    if (user && (!userProfile.name || !userProfile.email)) {
+      setUserProfile(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email
+      }));
+    }
+  }, [user]);
+
+  useEffect(() => {
     const savedTimer = loadFromStorage(STORAGE_KEYS.ACTIVE_TIMER);
     if (savedTimer && savedTimer.taskId && savedTimer.startedAt) {
       const task = tasks.find(t => t.id === savedTimer.taskId);
@@ -116,18 +126,39 @@ const VADemo = () => {
 
   useEffect(() => {
     let interval = null;
-    let hasNotified = false;
+    let hasNotifiedTaskLimit = false;
+    let hasNotifiedDailyLimit = false;
     if (activeTimer && timerStartedAt && !isOnBreak) {
       interval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000) - totalBreakTime;
         setTimerSeconds(Math.max(0, elapsed));
         
         const task = tasks.find(t => t.id === activeTimer);
+        const client = clients.find(c => c.id === task?.clientId);
+        
+        if (client && client.dailyTimeLimitMin) {
+          const hoursElapsed = elapsed / 3600;
+          const dailyLimit = getClientDailyTimeLeft(client, timeEntries);
+          const projectedMinutes = dailyLimit.minutesUsed + (hoursElapsed * 60);
+          
+          if (projectedMinutes >= client.dailyTimeLimitMin && !hasNotifiedDailyLimit) {
+            hasNotifiedDailyLimit = true;
+            stopTimerAndLog();
+            addToast(`Daily time limit reached for ${client.name}`, 'warning');
+            notificationsManager.showNotification(
+              'Daily limit reached',
+              { body: `You've reached the daily time limit for ${client.name}`, type: 'warning' }
+            );
+          }
+        }
+        
         if (task && task.estimatedMin) {
           const timeInfo = getTaskTimeRemaining(task, elapsed);
-          if (timeInfo.remainingSeconds === 0 && !timeInfo.isOverrun && !hasNotified) {
-            hasNotified = true;
+          if (timeInfo.remainingSeconds === 0 && !timeInfo.isOverrun && !hasNotifiedTaskLimit) {
+            hasNotifiedTaskLimit = true;
             addToast('Task time limit reached!', 'warning');
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHG2m98Om');
+            audio.play().catch(() => {});
             notificationsManager.showNotification(
               'Time limit reached',
               { body: `"${task.title}" has reached its estimated time.`, type: 'task-complete' }
@@ -147,7 +178,7 @@ const VADemo = () => {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [activeTimer, timerStartedAt, isOnBreak, breakStartedAt, totalBreakTime, tasks]);
+  }, [activeTimer, timerStartedAt, isOnBreak, breakStartedAt, totalBreakTime, tasks, clients, timeEntries]);
 
   useEffect(() => {
     notificationsManager.requestPermission();
@@ -208,12 +239,10 @@ const VADemo = () => {
       if (isOnBreak) {
         setIsOnBreak(false);
         setBreakStartedAt(null);
-        addToast('Break ended, timer resumed', 'success');
+        addToast('Timer resumed', 'success');
       } else {
-        setActiveTimer(null);
-        setTimerStartedAt(null);
-        setTimerSeconds(0);
-        setTotalBreakTime(0);
+        setIsOnBreak(true);
+        setBreakStartedAt(new Date().toISOString());
         addToast('Timer paused', 'info');
       }
     } else {
@@ -225,6 +254,13 @@ const VADemo = () => {
       setTimerSeconds(0);
       setTotalBreakTime(0);
       setIsOnBreak(false);
+      
+      if (task.status !== 'In Progress' && task.status !== 'Completed') {
+        setTasks(prev => prev.map(t => 
+          t.id === taskId ? { ...t, status: 'In Progress' } : t
+        ));
+      }
+      
       addToast(`Timer started for: ${task.title}`, 'success');
     }
   };

@@ -21,25 +21,29 @@ args = "Server"
 name = "Server"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server/index.js & npm run dev"
+waitForPort = 5000
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 40277
-externalPort = 3000
-
-[[ports]]
 localPort = 44335
 externalPort = 3001
+
+[[ports]]
+localPort = 46747
+externalPort = 3002
 
 [deployment]
 deploymentTarget = "autoscale"

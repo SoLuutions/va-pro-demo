@@ -75,10 +75,30 @@ export default function Billing({ clients, tasks, timeEntries }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard icon={Clock} label="Total Hours Logged" value="142.5h" color="green" />
-        <StatCard icon={FileText} label="Invoices Sent" value="8" color="blue" />
-        <StatCard icon={ListChecks} label="Completed Tasks" value="24" color="yellow" />
-        <StatCard icon={CheckCircle} label="Active Clients" value={clients.length} color="purple" />
+        <StatCard 
+          icon={Clock} 
+          label="Total Hours Logged" 
+          value={`${timeEntries.reduce((sum, e) => sum + e.duration, 0).toFixed(1)}h`} 
+          color="green" 
+        />
+        <StatCard 
+          icon={FileText} 
+          label="Billable Entries" 
+          value={timeEntries.filter(e => e.billable).length} 
+          color="blue" 
+        />
+        <StatCard 
+          icon={ListChecks} 
+          label="Completed Tasks" 
+          value={tasks.filter(t => t.status === 'Completed').length} 
+          color="yellow" 
+        />
+        <StatCard 
+          icon={CheckCircle} 
+          label="Active Clients" 
+          value={clients.length} 
+          color="purple" 
+        />
       </div>
 
       {data && (
@@ -124,34 +144,6 @@ export default function Billing({ clients, tasks, timeEntries }) {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Invoices</h3>
-        </div>
-        <div className="divide-y">
-          {[
-            { id: "INV-001", client: "TechStart Solutions", hours: 45.0, status: "Sent", date: "2025-09-20" },
-            { id: "INV-002", client: "E-commerce Plus", hours: 62.4, status: "Pending", date: "2025-09-25" },
-            { id: "INV-003", client: "Digital Marketing Hub", hours: 38.7, status: "Sent", date: "2025-09-15" },
-          ].map((inv) => (
-            <div key={inv.id} className="p-6 flex items-center justify-between hover:bg-gray-50">
-              <div>
-                <h4 className="font-medium text-gray-900">{inv.id}</h4>
-                <p className="text-sm text-gray-500">{inv.client} • {inv.date}</p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <p className="font-semibold text-gray-900">{inv.hours.toFixed(1)}h</p>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  inv.status === "Sent" ? "bg-green-100 text-green-800" :
-                  "bg-yellow-100 text-yellow-800"
-                }`}>
-                  {inv.status}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
