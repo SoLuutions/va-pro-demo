@@ -2,7 +2,7 @@
 import React from "react";
 import { Plus, Building2, Mail, MapPin, Globe, Trash2 } from "lucide-react";
 
-export default function Clients({ clients, tasks, timeEntries, setSelectedClient, setShowNewClientModal, setClients, setTasks, setTimeEntries }) {
+export default function Clients({ clients, tasks, timeEntries, setSelectedClient, setShowNewClientModal, setClients, setTasks, setTimeEntries, uiSettings }) {
   const handleDeleteClient = (clientId) => {
     // Remove client
     setClients(prev => prev.filter(c => c.id !== clientId));
@@ -28,7 +28,7 @@ export default function Clients({ clients, tasks, timeEntries, setSelectedClient
         {clients.map((client) => (
           <div
             key={client.id}
-            className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+            className={`p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer ${uiSettings?.darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white'}`}
             onClick={() => {
               setSelectedClient(client);
               setShowNewClientModal(true);

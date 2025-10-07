@@ -14,6 +14,7 @@ export default function Tasks({
   getClientName,
   setShowNewTaskModal,
   setTasks,
+  uiSettings,
 }) {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
@@ -100,7 +101,7 @@ export default function Tasks({
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className={`rounded-lg shadow-sm border ${uiSettings?.darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white'}`}>
         <div className="p-4 border-b">
           <div className="flex space-x-4">
             <div className="flex-1 relative">

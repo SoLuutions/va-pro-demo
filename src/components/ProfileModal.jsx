@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, User } from 'lucide-react';
 
-export default function ProfileModal({ profile, onSave, onClose }) {
+export default function ProfileModal({ profile, onSave, onClose, uiSettings, onUpdateUiSettings }) {
   const [formData, setFormData] = useState({
     name: profile?.name || '',
     email: profile?.email || '',
@@ -28,49 +28,49 @@ export default function ProfileModal({ profile, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Profile & Settings</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <X className="h-6 w-6" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Full Name
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
               placeholder="Enter your name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
               placeholder="your.email@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Timezone
             </label>
             <select
               value={formData.timezone}
               onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
             >
               <option value="Asia/Manila">Asia/Manila (GMT+8)</option>
               <option value="America/New_York">America/New York (EST)</option>
@@ -82,16 +82,46 @@ export default function ProfileModal({ profile, onSave, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Avatar URL (optional)
             </label>
             <input
               type="url"
               value={formData.avatarUrl}
               onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
               placeholder="https://example.com/avatar.jpg"
             />
+          </div>
+
+          <div className="pt-2 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Dark mode</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Apply dark theme to the entire app</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onUpdateUiSettings({ ...uiSettings, darkMode: !uiSettings.darkMode })}
+                className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                {uiSettings.darkMode ? 'On' : 'Off'}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">NDA mode</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Hide sensitive names/amounts for screen sharing</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onUpdateUiSettings({ ...uiSettings, ndaMode: !uiSettings.ndaMode })}
+                className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                {uiSettings.ndaMode ? 'On' : 'Off'}
+              </button>
+            </div>
           </div>
 
           <div className="flex space-x-3 pt-4">

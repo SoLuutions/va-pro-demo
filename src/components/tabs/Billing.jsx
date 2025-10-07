@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { FileText, Clock, CheckCircle, ListChecks } from "lucide-react";
 import { jsPDF } from "jspdf";
 
-export default function Billing({ clients, tasks, timeEntries, formatCurrency }) {
+export default function Billing({ clients, tasks, timeEntries, formatCurrency, uiSettings }) {
   const [invoiceClient, setInvoiceClient] = useState(clients[0]?.id || null);
   const [invoiceNotes, setInvoiceNotes] = useState("");
 
@@ -108,9 +108,9 @@ export default function Billing({ clients, tasks, timeEntries, formatCurrency })
   };
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${uiSettings?.darkMode ? 'text-gray-100' : ''}`}>
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Time Invoice & Billing</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Time Invoice & Billing</h2>
         <button onClick={generatePDF} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2">
           <FileText className="h-4 w-4" />
           <span>Generate Invoice</span>

@@ -41,7 +41,6 @@ const VADemo = () => {
   const [uiSettings, setUiSettings] = useState(() =>
     loadFromStorage('va_pro_ui_settings', {
       darkMode: false,
-      compact: false,
       ndaMode: false,
     })
   );
@@ -501,27 +500,6 @@ const VADemo = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <button
-                onClick={() => setUiSettings(s => ({ ...s, darkMode: !s.darkMode }))}
-                className="px-2 py-1 text-sm rounded border hover:bg-gray-50 dark:hover:bg-gray-800"
-                title="Toggle dark mode"
-              >
-                {uiSettings.darkMode ? 'Light' : 'Dark'}
-              </button>
-              <button
-                onClick={() => setUiSettings(s => ({ ...s, compact: !s.compact }))}
-                className="px-2 py-1 text-sm rounded border hover:bg-gray-50 dark:hover:bg-gray-800"
-                title="Toggle compact density"
-              >
-                {uiSettings.compact ? 'Comfort' : 'Compact'}
-              </button>
-              <button
-                onClick={() => setUiSettings(s => ({ ...s, ndaMode: !s.ndaMode }))}
-                className="px-2 py-1 text-sm rounded border hover:bg-gray-50 dark:hover:bg-gray-800"
-                title="Toggle NDA mode (hide sensitive info)"
-              >
-                {uiSettings.ndaMode ? 'NDA On' : 'NDA Off'}
-              </button>
               <div 
                 className="text-right cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded"
                 onClick={() => setShowProfileModal(true)}
@@ -599,14 +577,14 @@ const VADemo = () => {
         </div>
       )}
 
-      <main className={`max-w-7xl mx-auto ${uiSettings.compact ? 'p-3 sm:p-4 lg:p-6' : 'p-4 sm:p-6 lg:p-8'}`}>
+      <main className={`max-w-7xl mx-auto p-4 sm:p-6 lg:p-8`}>
         <React.Suspense fallback={<div className="p-6 bg-white border rounded-lg">Loading…</div>}>
           {activeTab === "dashboard" && <Dashboard {...shared} />}
-          {activeTab === "clients" && <Clients {...shared} tasks={tasks} timeEntries={timeEntries} />}
-          {activeTab === "tasks" && <Tasks {...shared} setTasks={setTasks} />}
+          {activeTab === "clients" && <Clients {...shared} tasks={tasks} timeEntries={timeEntries} uiSettings={uiSettings} />}
+          {activeTab === "tasks" && <Tasks {...shared} setTasks={setTasks} uiSettings={uiSettings} />}
           {activeTab === "time" && <TimeTracking {...shared} />}
           {activeTab === "reports" && <Reports {...shared} />}
-          {activeTab === "billing" && <Billing {...shared} />}
+          {activeTab === "billing" && <Billing {...shared} uiSettings={uiSettings} />}
         </React.Suspense>
       </main>
 
@@ -642,6 +620,8 @@ const VADemo = () => {
         <ProfileModal
           profile={userProfile}
           onSave={setUserProfile}
+          uiSettings={uiSettings}
+          onUpdateUiSettings={setUiSettings}
           onClose={() => setShowProfileModal(false)}
         />
       )}
