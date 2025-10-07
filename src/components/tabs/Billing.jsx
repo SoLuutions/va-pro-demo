@@ -5,6 +5,7 @@ import { jsPDF } from "jspdf";
 
 export default function Billing({ clients, tasks, timeEntries, formatCurrency }) {
   const [invoiceClient, setInvoiceClient] = useState(clients[0]?.id || null);
+  const [invoiceNotes, setInvoiceNotes] = useState("");
 
   const generateInvoiceData = (clientId) => {
     const client = clients.find((c) => c.id === clientId);
@@ -18,6 +19,23 @@ export default function Billing({ clients, tasks, timeEntries, formatCurrency })
 
   const data = invoiceClient ? generateInvoiceData(invoiceClient) : null;
 
+  const nextInvoiceNumber = (() => {
+    try {
+      const raw = localStorage.getItem('va_pro_invoice_sequence');
+      const v = raw ? parseInt(JSON.parse(raw)) : 1;
+      return v;
+    } catch {
+      return 1;
+    }
+  })();
+
+  const commitInvoiceNumber = () => {
+    try {
+      const next = nextInvoiceNumber + 1;
+      localStorage.setItem('va_pro_invoice_sequence', JSON.stringify(next));
+    } catch {}
+  };
+
   const generatePDF = () => {
     if (!data) return;
 
@@ -26,7 +44,7 @@ export default function Billing({ clients, tasks, timeEntries, formatCurrency })
     
     doc.setFontSize(24);
     doc.setFont(undefined, 'bold');
-    doc.text('TIME INVOICE', pageWidth / 2, 20, { align: 'center' });
+    doc.text(`INVOICE #${String(nextInvoiceNumber).padStart(4,'0')}`, pageWidth / 2, 20, { align: 'center' });
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
@@ -74,8 +92,19 @@ export default function Billing({ clients, tasks, timeEntries, formatCurrency })
     yPos += 7;
     doc.text('Total Amount:', 110, yPos);
     doc.text(`${data.currency} ${data.total.toFixed(2)}`, 160, yPos);
+
+    if (invoiceNotes) {
+      yPos += 12;
+      doc.setFont(undefined, 'bold');
+      doc.text('Notes', 20, yPos);
+      doc.setFont(undefined, 'normal');
+      yPos += 6;
+      const lines = doc.splitTextToSize(invoiceNotes, pageWidth - 40);
+      doc.text(lines, 20, yPos);
+    }
     
-    doc.save(`Time-Invoice-${data.client.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
+    commitInvoiceNumber();
+    doc.save(`Invoice-${String(nextInvoiceNumber).padStart(4,'0')}-${data.client.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -148,6 +177,12 @@ export default function Billing({ clients, tasks, timeEntries, formatCurrency })
               <h4 className="font-semibold text-gray-900 mb-2">Invoice Preview</h4>
               <Row label="Client" value={data.client.name} />
               <Row label="Total Hours" value={<span className="font-bold text-lg">{data.hours.toFixed(2)}h</span>} />
+              <Row label="Rate" value={`${data.currency} ${data.rate}`} />
+              <Row label="Total Amount" value={<span className="font-bold text-lg">{formatCurrency ? formatCurrency(data.total, data.currency) : `${data.currency} ${data.total.toFixed(2)}`}</span>} />
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Notes (optional)</label>
+                <textarea value={invoiceNotes} onChange={(e) => setInvoiceNotes(e.target.value)} className="w-full border rounded-lg p-2" rows={3} placeholder="Terms, payment details, or reminders" />
+              </div>
             </div>
 
             <div className="flex space-x-4">

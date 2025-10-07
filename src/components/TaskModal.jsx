@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, FolderOpen } from "lucide-react";
 
-export default function TaskModal({ task, tasks, setTasks, clients, onClose }) {
+export default function TaskModal({ task, tasks, setTasks, clients, onClose, templates = [], onSaveTemplate, onApplyTemplate }) {
   if (clients.length === 0) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -64,6 +64,23 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose }) {
     }
     
     onClose();
+  };
+
+  const handleSaveTemplate = () => {
+    const tpl = {
+      id: Date.now(),
+      title: formData.title,
+      description: formData.description,
+      project: formData.project,
+      priority: formData.priority,
+      status: 'To Do',
+      billable: formData.billable,
+      estimatedMin: formData.estimatedMin,
+      allowOverrun: formData.allowOverrun,
+      fileLinks: formData.fileLinks,
+      outputLinks: formData.outputLinks,
+    };
+    onSaveTemplate && onSaveTemplate(tpl);
   };
 
   const selectedClient = clients.find(c => c.id === parseInt(formData.clientId));
@@ -291,6 +308,30 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose }) {
             >
               {task ? "Update Task" : "Create Task"}
             </button>
+          </div>
+          <div className="flex items-center justify-between pt-2">
+            <button type="button" onClick={handleSaveTemplate} className="text-sm text-blue-600 hover:underline">Save as template</button>
+            {templates.length > 0 && (
+              <select
+                className="text-sm border rounded px-2 py-1"
+                onChange={(e) => {
+                  const tpl = templates.find(t => t.id === parseInt(e.target.value));
+                  if (!tpl) return;
+                  onApplyTemplate && onApplyTemplate(tpl);
+                  setFormData(prev => ({
+                    ...prev,
+                    ...tpl,
+                    clientId: prev.clientId,
+                    status: 'To Do'
+                  }));
+                }}
+              >
+                <option value="">Apply template…</option>
+                {templates.map(t => (
+                  <option key={t.id} value={t.id}>{t.title}</option>
+                ))}
+              </select>
+            )}
           </div>
         </form>
       </div>

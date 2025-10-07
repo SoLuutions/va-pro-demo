@@ -7,7 +7,9 @@ const STORAGE_KEYS = {
   BREAKS: 'va_pro_breaks',
   AUTH_USER: 'va_pro_auth_user',
   REGISTERED_USERS: 'va_pro_registered_users',
-  QUICK_LINKS: 'va_pro_quick_links'
+  QUICK_LINKS: 'va_pro_quick_links',
+  TASK_TEMPLATES: 'va_pro_task_templates',
+  INVOICE_SEQUENCE: 'va_pro_invoice_sequence'
 };
 
 export function saveToStorage(key, data) {

@@ -14,6 +14,7 @@ import ClientModal from "./ClientModal";
 import TaskModal from "./TaskModal";
 import ProfileModal from "./ProfileModal";
 import FocusMode from "./FocusMode";
+import CommandPalette from "./CommandPalette";
 import Toast from "./Toast";
 import { canStartTimer, getTaskTimeRemaining, formatTimeRemaining } from "../utils/timeWindow";
 import { notificationsManager } from "../utils/notifications";
@@ -37,6 +38,13 @@ const VADemo = () => {
   const [totalBreakTime, setTotalBreakTime] = useState(0);
   const [showFocusMode, setShowFocusMode] = useState(false);
   const [toasts, setToasts] = useState([]);
+  const [uiSettings, setUiSettings] = useState(() =>
+    loadFromStorage('va_pro_ui_settings', {
+      darkMode: false,
+      compact: false,
+      ndaMode: false,
+    })
+  );
   
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -44,6 +52,7 @@ const VADemo = () => {
   const [showNewClientModal, setShowNewClientModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   const [userProfile, setUserProfile] = useState(() => 
     loadFromStorage(STORAGE_KEYS.USER_PROFILE, {
@@ -66,6 +75,10 @@ const VADemo = () => {
     loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, [])
   );
 
+  const [taskTemplates, setTaskTemplates] = useState(() =>
+    loadFromStorage(STORAGE_KEYS.TASK_TEMPLATES, [])
+  );
+
   const [quickLinks, setQuickLinks] = useState(() => 
     loadFromStorage(STORAGE_KEYS.QUICK_LINKS, [])
   );
@@ -83,12 +96,26 @@ const VADemo = () => {
   }, [timeEntries]);
 
   useEffect(() => {
+    saveToStorage(STORAGE_KEYS.TASK_TEMPLATES, taskTemplates);
+  }, [taskTemplates]);
+
+  useEffect(() => {
     saveToStorage(STORAGE_KEYS.USER_PROFILE, userProfile);
   }, [userProfile]);
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.QUICK_LINKS, quickLinks);
   }, [quickLinks]);
+
+  useEffect(() => {
+    saveToStorage('va_pro_ui_settings', uiSettings);
+    const root = document.documentElement;
+    if (uiSettings.darkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [uiSettings]);
 
   useEffect(() => {
     if (user && (!userProfile.name || !userProfile.email)) {
@@ -184,6 +211,23 @@ const VADemo = () => {
     notificationsManager.requestPermission();
 
     const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(s => !s);
+        return;
+      }
+      if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setShowNewTaskModal(true);
+        return;
+      }
+      if (e.key === ' ' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        if (activeTask) {
+          handleStartTimer(activeTask.id);
+        }
+        return;
+      }
       if (e.key === 'Escape' && showFocusMode) {
         setShowFocusMode(false);
       }
@@ -429,12 +473,12 @@ const VADemo = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b sticky top-0 z-20">
+      <nav className="bg-white dark:bg-gray-900 shadow-sm border-b sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-8">
               <div className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-blue-600">VA Pro</h1>
+                <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">VA Pro</h1>
               </div>
               <div className="flex space-x-2 sm:space-x-3">
                 {tabs.map((tab) => {
@@ -456,21 +500,42 @@ const VADemo = () => {
                 })}
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <button
+                onClick={() => setUiSettings(s => ({ ...s, darkMode: !s.darkMode }))}
+                className="px-2 py-1 text-sm rounded border hover:bg-gray-50 dark:hover:bg-gray-800"
+                title="Toggle dark mode"
+              >
+                {uiSettings.darkMode ? 'Light' : 'Dark'}
+              </button>
+              <button
+                onClick={() => setUiSettings(s => ({ ...s, compact: !s.compact }))}
+                className="px-2 py-1 text-sm rounded border hover:bg-gray-50 dark:hover:bg-gray-800"
+                title="Toggle compact density"
+              >
+                {uiSettings.compact ? 'Comfort' : 'Compact'}
+              </button>
+              <button
+                onClick={() => setUiSettings(s => ({ ...s, ndaMode: !s.ndaMode }))}
+                className="px-2 py-1 text-sm rounded border hover:bg-gray-50 dark:hover:bg-gray-800"
+                title="Toggle NDA mode (hide sensitive info)"
+              >
+                {uiSettings.ndaMode ? 'NDA On' : 'NDA Off'}
+              </button>
               <div 
-                className="text-right cursor-pointer hover:bg-gray-50 p-2 rounded"
+                className="text-right cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded"
                 onClick={() => setShowProfileModal(true)}
               >
-                <p className="text-sm font-medium text-gray-900">{userProfile.name}</p>
-                <p className="text-xs text-gray-500">PH • {userProfile.timezone}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{uiSettings.ndaMode ? 'User' : userProfile.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">PH • {userProfile.timezone}</p>
               </div>
               <div 
-                className="h-8 w-8 rounded-full bg-blue-200 cursor-pointer hover:bg-blue-300"
+                className="h-8 w-8 rounded-full bg-blue-200 dark:bg-blue-700 cursor-pointer hover:bg-blue-300 dark:hover:bg-blue-600"
                 onClick={() => setShowProfileModal(true)}
               />
               <button
                 onClick={logout}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
                 title="Logout"
               >
                 <LogOut className="h-5 w-5" />
@@ -534,11 +599,11 @@ const VADemo = () => {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <main className={`max-w-7xl mx-auto ${uiSettings.compact ? 'p-3 sm:p-4 lg:p-6' : 'p-4 sm:p-6 lg:p-8'}`}>
         <React.Suspense fallback={<div className="p-6 bg-white border rounded-lg">Loading…</div>}>
           {activeTab === "dashboard" && <Dashboard {...shared} />}
-          {activeTab === "clients" && <Clients {...shared} />}
-          {activeTab === "tasks" && <Tasks {...shared} />}
+          {activeTab === "clients" && <Clients {...shared} tasks={tasks} timeEntries={timeEntries} />}
+          {activeTab === "tasks" && <Tasks {...shared} setTasks={setTasks} />}
           {activeTab === "time" && <TimeTracking {...shared} />}
           {activeTab === "reports" && <Reports {...shared} />}
           {activeTab === "billing" && <Billing {...shared} />}
@@ -563,6 +628,9 @@ const VADemo = () => {
           tasks={tasks}
           setTasks={setTasks}
           clients={clients}
+          templates={taskTemplates}
+          onSaveTemplate={(tpl) => setTaskTemplates(prev => [tpl, ...prev])}
+          onApplyTemplate={() => {}}
           onClose={() => {
             setShowNewTaskModal(false);
             setSelectedTask(null);
@@ -592,6 +660,16 @@ const VADemo = () => {
       )}
 
       <Toast toasts={toasts} onDismiss={dismissToast} />
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        setShowNewTaskModal={setShowNewTaskModal}
+        setShowNewClientModal={setShowNewClientModal}
+        setActiveTab={setActiveTab}
+        handleStartStop={() => {
+          if (activeTask) handleStartTimer(activeTask.id);
+        }}
+      />
     </div>
   );
 };
