@@ -78,36 +78,37 @@ VA Pro is a full-featured productivity platform that enables virtual assistants 
 - **jsPDF** - PDF report generation
 
 ### Backend
-- **Express.js** - API server
-- **Redis** - Data storage and caching
+- **Express.js** - Lightweight API server
 - **Node.js** - Runtime environment
 
 ## Data Storage
 
-### Current Implementation (Frontend)
-- **localStorage** - All user data is stored client-side in the browser
+### Current Implementation
+- **localStorage** - All data stored client-side in browser
   - Client records
   - Task management
   - Time entries
   - User profiles
   - Timer state persistence
+  - Works offline
+  - No database required
 
-### Backend API (Optional Integration)
-- **Express.js** server provides REST endpoints for future Redis integration
-- Generic key-value storage endpoints available but not currently utilized by frontend
-- Endpoints: `/api/data/:userId/:key` (GET/POST/DELETE)
+### Backend API
+- Simple Express server running on port 3000
+- Provides health check endpoint
+- No database connections (localStorage-only mode)
+- API endpoints return informational responses only
 
-### Available for Future Enhancement
-Both `REDIS_URL` and `DATABASE_URL` environment variables are configured and ready for backend integration:
-- **Redis** - Fast caching, session management, real-time data sync
-- **PostgreSQL** - Relational data models, user authentication, advanced queries
+### Future Enhancement Options
+If you need server-side storage in the future, you can integrate:
+- **Redis** - For fast caching and session management
+- **PostgreSQL** - For relational data and user authentication
 
 ## Quick Start
 
 ### Prerequisites
 - Node.js 20 or higher
-- Redis database access
-- PostgreSQL database access
+- No database required (uses browser localStorage)
 
 ### Installation
 
@@ -116,14 +117,7 @@ Both `REDIS_URL` and `DATABASE_URL` environment variables are configured and rea
    npm install
    ```
 
-2. Set up environment variables:
-   Create a `.env` file or set the following secrets in Replit:
-   ```
-   REDIS_URL=your_redis_connection_url
-   DATABASE_URL=your_postgresql_connection_url
-   ```
-
-3. Start the development server:
+2. Start the development server:
    ```bash
    npm start
    ```
@@ -169,26 +163,12 @@ va-pro-demo/
 
 The Express backend provides the following API endpoints:
 
-- `GET /api/health` - Server health check
-- `GET /api/data/:userId/:key` - Retrieve user data from Redis
-- `POST /api/data/:userId/:key` - Store user data in Redis
-- `DELETE /api/data/:userId/:key` - Delete user data from Redis
+- `GET /api/health` - Server health check and storage mode status
+- `GET /api/data/:userId/:key` - Returns localStorage-only message (no server storage)
+- `POST /api/data/:userId/:key` - Returns localStorage-only message (data saved to browser only)
+- `DELETE /api/data/:userId/:key` - Returns localStorage-only message (no server data to delete)
 
-## Environment Configuration
-
-### Required Environment Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `REDIS_URL` | Redis connection URL | `redis://default:password@host:port` |
-| `DATABASE_URL` | PostgreSQL connection URL | `postgresql://user:password@host:port/database` |
-
-### Security Notes
-
-- All database credentials are stored as environment variables
-- Never commit credentials to version control
-- Use Replit Secrets for secure credential management
-- API endpoints include error handling and validation
+**Note**: These endpoints are placeholders for future backend integration. Currently, all data is stored in browser localStorage.
 
 ## Development
 
@@ -196,9 +176,10 @@ The Express backend provides the following API endpoints:
 The Vite dev server supports HMR for instant updates during development.
 
 ### Data Persistence
-- **Current**: All data stored in browser localStorage (client-side only)
-- **Backend**: Express server with Redis endpoints available but not actively used
-- **Future**: Redis and PostgreSQL connections ready for server-side data migration
+- All data stored in browser localStorage (client-side)
+- Works completely offline after initial load
+- No server-side database required
+- Data persists across browser sessions
 
 ### Timezone Handling
 - Default timezone: Asia/Manila (Philippine Time)
@@ -207,20 +188,14 @@ The Vite dev server supports HMR for instant updates during development.
 
 ## Deployment
 
-This application can be deployed on Railway or similar platforms:
+This application can be deployed on Vercel, Netlify, Railway, or similar platforms:
 
-1. Push code to GitHub
-2. Connect repository to Railway
-3. Configure environment variables in Railway dashboard:
-   - `REDIS_URL` - Your Redis connection URL
-   - `DATABASE_URL` - (Optional) PostgreSQL connection URL for future use
-4. Railway will automatically build and deploy
+1. Push code to your chosen platform
+2. Set build command: `npm run build`
+3. Set start/preview command: `npm start`
+4. Deploy - no environment variables or databases required
 
-**Current State**: 
-- The frontend is fully functional and stores all data in browser localStorage
-- The Express backend provides Redis API endpoints but they are not currently integrated with the frontend
-- Only `REDIS_URL` is actively used by the backend; `DATABASE_URL` is configured but unused
-- For production deployment with server-side persistence, frontend components would need to be updated to call the backend API instead of using localStorage
+**Note**: The app uses localStorage for all data storage, so it works without any backend database configuration. The Express server runs alongside Vite but doesn't require any database connections.
 
 ## Browser Support
 

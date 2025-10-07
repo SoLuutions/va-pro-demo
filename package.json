@@ -6,20 +6,18 @@
   "scripts": {
     "dev": "vite",
     "server": "node server/index.js",
-    "start": "node server/index.js & vite",
+    "start": "node server/index.js & sleep 1 && vite",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jspdf": "^3.0.3",
     "lucide-react": "^0.446.0",
     "luxon": "^3.7.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "redis": "^5.8.3"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.45",
