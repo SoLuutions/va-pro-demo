@@ -1,8 +1,16 @@
 
 import React from "react";
-import { Plus, Building2, Mail, MapPin, Globe } from "lucide-react";
+import { Plus, Building2, Mail, MapPin, Globe, Trash2 } from "lucide-react";
 
-export default function Clients({ clients, setSelectedClient, setShowNewClientModal, setClients }) {
+export default function Clients({ clients, tasks, timeEntries, setSelectedClient, setShowNewClientModal, setClients, setTasks, setTimeEntries }) {
+  const handleDeleteClient = (clientId) => {
+    // Remove client
+    setClients(prev => prev.filter(c => c.id !== clientId));
+    // Remove tasks for this client
+    setTasks(prev => prev.filter(t => t.clientId !== clientId));
+    // Remove time entries for this client
+    setTimeEntries(prev => prev.filter(e => e.clientId !== clientId));
+  };
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -36,9 +44,21 @@ export default function Clients({ clients, setSelectedClient, setShowNewClientMo
                   <p className="text-sm text-gray-500">{client.status}</p>
                 </div>
               </div>
-              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                {client.currency} {client.rate}/hr
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                  {client.currency} {client.rate}/hr
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteClient(client.id);
+                  }}
+                  className="p-1 rounded hover:bg-red-50 text-red-600"
+                  title="Delete client"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2 mb-4">

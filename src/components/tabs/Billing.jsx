@@ -3,14 +3,17 @@ import React, { useState } from "react";
 import { FileText, Clock, CheckCircle, ListChecks } from "lucide-react";
 import { jsPDF } from "jspdf";
 
-export default function Billing({ clients, tasks, timeEntries }) {
+export default function Billing({ clients, tasks, timeEntries, formatCurrency }) {
   const [invoiceClient, setInvoiceClient] = useState(clients[0]?.id || null);
 
   const generateInvoiceData = (clientId) => {
     const client = clients.find((c) => c.id === clientId);
     const entries = timeEntries.filter((e) => e.clientId === clientId && e.billable);
     const hours = entries.reduce((s, e) => s + e.duration, 0);
-    return { client, entries, hours };
+    const rate = client?.rate || 0;
+    const currency = client?.currency || 'USD';
+    const total = +(hours * rate).toFixed(2);
+    return { client, entries, hours, rate, currency, total };
   };
 
   const data = invoiceClient ? generateInvoiceData(invoiceClient) : null;
@@ -40,7 +43,9 @@ export default function Billing({ clients, tasks, timeEntries }) {
     
     doc.setFont(undefined, 'bold');
     doc.text('Description', 20, 105);
-    doc.text('Hours', 140, 105);
+    doc.text('Hours', 120, 105);
+    doc.text('Rate', 150, 105);
+    doc.text('Amount', 180, 105);
     
     doc.setFont(undefined, 'normal');
     let yPos = 115;
@@ -51,7 +56,10 @@ export default function Billing({ clients, tasks, timeEntries }) {
         yPos = 20;
       }
       doc.text(entry.description.substring(0, 50), 20, yPos);
-      doc.text(entry.duration.toFixed(2) + 'h', 140, yPos);
+      const amount = +(entry.duration * data.rate).toFixed(2);
+      doc.text(entry.duration.toFixed(2) + 'h', 120, yPos);
+      doc.text(`${data.currency} ${data.rate}`, 150, yPos);
+      doc.text(`${data.currency} ${amount.toFixed(2)}`, 180, yPos);
       yPos += 7;
     });
     
@@ -60,6 +68,12 @@ export default function Billing({ clients, tasks, timeEntries }) {
     doc.setFont(undefined, 'bold');
     doc.text('Total Hours:', 110, yPos);
     doc.text(data.hours.toFixed(2) + 'h', 140, yPos);
+    yPos += 7;
+    doc.text('Rate:', 110, yPos);
+    doc.text(`${data.currency} ${data.rate}`, 140, yPos);
+    yPos += 7;
+    doc.text('Total Amount:', 110, yPos);
+    doc.text(`${data.currency} ${data.total.toFixed(2)}`, 160, yPos);
     
     doc.save(`Time-Invoice-${data.client.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
   };

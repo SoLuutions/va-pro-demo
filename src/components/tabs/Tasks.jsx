@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from "react";
 import { DateTime } from "luxon";
-import { Plus, Search, Building2, Calendar, Clock, Play, Pause, ExternalLink, FileText, List, Grid } from "lucide-react";
+import { Plus, Search, Building2, Calendar, Clock, Play, Pause, ExternalLink, FileText, List, Grid, Trash2 } from "lucide-react";
 
 export default function Tasks({
   clients,
@@ -13,6 +13,7 @@ export default function Tasks({
   getPriorityColor,
   getClientName,
   setShowNewTaskModal,
+  setTasks,
 }) {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
@@ -311,6 +312,14 @@ export default function Tasks({
                     >
                       Edit
                     </button>
+                  <button
+                    onClick={() => setTasks(prev => prev.filter(t => t.id !== task.id))}
+                    className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 flex items-center space-x-1"
+                    title="Delete task"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    <span>Delete</span>
+                  </button>
                   </div>
                 </div>
               </div>
