@@ -80,32 +80,24 @@ VA Pro is a full-featured productivity platform that enables virtual assistants 
 
 ### Backend
 - **Express.js** - API server
-- **Redis** - Data storage and caching
+- **In-memory storage** - Ephemeral server-side storage (no external DB)
 - **Node.js** - Runtime environment
 
-## Database Architecture
+## Storage Architecture
 
-### Redis (Current Implementation)
-- User data storage
-- Real-time timer state caching
-- Client and task data
-- Time entries
-- Fast key-value operations
-- Data persistence with Redis
+### In-memory (Current Implementation)
+- Per-user key-value storage in server memory
+- Real-time timer state and simple data
+- Fast operations
+- Ephemeral: data resets on server restarts
 
-### PostgreSQL (Available for Future Implementation)
-The `DATABASE_URL` environment variable is configured and ready for PostgreSQL integration. Future enhancements can include:
-- User accounts and authentication with PostgreSQL
-- Relational data models for clients, tasks, and time entries
-- Advanced querying and reporting
-- Transaction support for billing and invoices
+### Future Database Option
+This demo can be extended to use Redis or PostgreSQL later. That would require adding a proper data layer and environment variables.
 
 ## Quick Start
 
 ### Prerequisites
 - Node.js 20 or higher
-- Redis database access
-- PostgreSQL database access
 
 ### Installation
 
@@ -114,12 +106,8 @@ The `DATABASE_URL` environment variable is configured and ready for PostgreSQL i
    npm install
    ```
 
-2. Set up environment variables:
-   Create a `.env` file or set the following secrets in Replit:
-   ```
-   REDIS_URL=your_redis_connection_url
-   DATABASE_URL=your_postgresql_connection_url
-   ```
+2. Environment variables (optional):
+   Create a `.env` file if needed for `PORT`. No DB vars are required.
 
 3. Start the development server:
    ```bash
@@ -129,10 +117,9 @@ The `DATABASE_URL` environment variable is configured and ready for PostgreSQL i
 
 ### Alternative Commands
 
-- **Frontend only**: `npm run dev`
-- **Backend only**: `npm run server`
+- **Dev (backend + frontend)**: `npm run dev`
 - **Production build**: `npm run build`
-- **Preview production**: `npm run preview`
+- **Start server**: `npm start`
 
 ## Project Structure
 
@@ -194,9 +181,8 @@ The Express backend provides the following API endpoints:
 The Vite dev server supports HMR for instant updates during development.
 
 ### Data Persistence
-- Development uses localStorage for frontend state
-- Backend uses Redis for data storage via Express API
-- PostgreSQL connection available for future enhancement
+- Frontend uses `localStorage` for client-side state
+- Backend uses in-memory storage (ephemeral)
 
 ### Timezone Handling
 - Default timezone: Asia/Manila (Philippine Time)
@@ -205,16 +191,15 @@ The Vite dev server supports HMR for instant updates during development.
 
 ## Deployment
 
-This application can be deployed on Railway or similar platforms:
+This application can be deployed on Railway:
 
 1. Push code to GitHub
 2. Connect repository to Railway
-3. Configure environment variables in Railway dashboard:
-   - `REDIS_URL` - Your Redis connection URL
-   - `DATABASE_URL` - (Optional) PostgreSQL connection URL for future use
-4. Railway will automatically build and deploy
+3. Set `PORT` (Railway usually injects it automatically)
+4. No database add-ons are required
+5. Railway will automatically build and deploy
 
-**Note**: The current implementation uses Redis for data storage. For production use with PostgreSQL, additional backend code will need to be implemented to utilize the DATABASE_URL connection.
+Note: Since storage is in-memory, data will reset on each deploy/restart. For persistent storage, integrate a database.
 
 ## Browser Support
 
