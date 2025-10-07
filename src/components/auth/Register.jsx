@@ -6,6 +6,8 @@ export default function Register({ onRegister, onSwitchToLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [createOrg, setCreateOrg] = useState(true);
+  const [orgName, setOrgName] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
@@ -27,7 +29,7 @@ export default function Register({ onRegister, onSwitchToLogin }) {
       return;
     }
 
-    const result = onRegister(name, email, password);
+    const result = onRegister(name, email, password, createOrg ? { createOrg: true, orgName: orgName || `${name}'s Workspace` } : undefined);
     if (!result.success) {
       setError(result.error);
     }
@@ -39,6 +41,22 @@ export default function Register({ onRegister, onSwitchToLogin }) {
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
             <UserPlus className="w-8 h-8 text-blue-600" />
+          </div>
+
+          <div className="border-t pt-4 space-y-2">
+            <label className="flex items-center space-x-2">
+              <input type="checkbox" checked={createOrg} onChange={(e) => setCreateOrg(e.target.checked)} />
+              <span className="text-sm text-gray-700">Create an Organization workspace</span>
+            </label>
+            {createOrg && (
+              <input
+                type="text"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Organization name (e.g., Team Bayanihan)"
+              />
+            )}
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">VA Pro</h1>
           <p className="text-gray-600">Create your account</p>

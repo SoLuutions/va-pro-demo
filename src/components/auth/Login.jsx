@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { loadFromStorage } from '../../utils/localStorage';
 import { LogIn } from 'lucide-react';
 
 export default function Login({ onLogin, onSwitchToRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [orgHint, setOrgHint] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -30,6 +32,7 @@ export default function Login({ onLogin, onSwitchToRegister }) {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">VA Pro</h1>
           <p className="text-gray-600">Sign in to your account</p>
+          {orgHint && <p className="text-xs text-gray-500 mt-1">Workspace: {orgHint}</p>}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
