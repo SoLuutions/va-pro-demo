@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import VADemo from './components/VADemo.jsx';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 function AppContent() {
   const { isAuthenticated, login, register, getUserMemberships, switchWorkspace } = useAuth();
