@@ -44,16 +44,22 @@ export const AuthProvider = ({ children }) => {
     saveToStorage(CURRENT_WORKSPACE_KEY, currentWorkspace);
   }, [currentWorkspace]);
 
-  const login = (email, password) => {
+  const login = (email, password, preferredOrgId) => {
     const existingUser = loadFromStorage(STORAGE_KEYS.REGISTERED_USERS, []).find(
       u => u.email === email && u.password === password
     );
     if (existingUser) {
       setUser({ email: existingUser.email, name: existingUser.name });
-      // If user has memberships, set default workspace to first
+      // If user has memberships, set workspace
       const userMemberships = memberships.filter(m => m.userEmail === existingUser.email);
-      if (userMemberships.length && !currentWorkspace) {
-        setCurrentWorkspace({ orgId: userMemberships[0].orgId, role: userMemberships[0].role });
+      if (userMemberships.length) {
+        if (preferredOrgId) {
+          const match = userMemberships.find(m => m.orgId === preferredOrgId);
+          if (match) setCurrentWorkspace({ orgId: match.orgId, role: match.role });
+        }
+        if (!preferredOrgId && !currentWorkspace) {
+          setCurrentWorkspace({ orgId: userMemberships[0].orgId, role: userMemberships[0].role });
+        }
       }
       return { success: true };
     }
