@@ -8,6 +8,7 @@ import {
   DollarSign,
   Maximize2,
   LogOut,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import ClientModal from "./ClientModal";
@@ -26,9 +27,10 @@ const Tasks = React.lazy(() => import("./tabs/Tasks"));
 const TimeTracking = React.lazy(() => import("./tabs/TimeTracking"));
 const Reports = React.lazy(() => import("./tabs/Reports"));
 const Billing = React.lazy(() => import("./tabs/Billing"));
+const Organization = React.lazy(() => import("./tabs/Organization"));
 
 const VADemo = () => {
-  const { logout, user } = useAuth();
+  const { logout, user, memberships, currentWorkspace, getCurrentOrg } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [activeTimer, setActiveTimer] = useState(null);
   const [timerStartedAt, setTimerStartedAt] = useState(null);
@@ -81,6 +83,21 @@ const VADemo = () => {
   const [quickLinks, setQuickLinks] = useState(() => 
     loadFromStorage(STORAGE_KEYS.QUICK_LINKS, [])
   );
+
+  const registeredUsers = useMemo(() => loadFromStorage(STORAGE_KEYS.REGISTERED_USERS, []), []);
+  const employees = useMemo(() => {
+    if (!currentWorkspace) return [];
+    const members = memberships.filter(m => m.orgId === currentWorkspace.orgId);
+    return members.map(m => {
+      const u = registeredUsers.find(u => u.email === m.userEmail);
+      return {
+        email: m.userEmail,
+        name: u?.name || m.userEmail,
+        role: m.role,
+      };
+    });
+  }, [memberships, currentWorkspace, registeredUsers]);
+  const isOrgElevated = !!(currentWorkspace && ["Owner", "Admin"].includes(currentWorkspace.role));
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.CLIENTS, clients);
@@ -458,7 +475,8 @@ const VADemo = () => {
     showInvoiceModal, setShowInvoiceModal, addToast,
     getTaskTimeRemaining, formatTimeRemaining,
     userProfile,
-    quickLinks, setQuickLinks
+    quickLinks, setQuickLinks,
+    employees
   };
 
   const tabs = [
@@ -468,6 +486,7 @@ const VADemo = () => {
     { id: "time", name: "Time Tracking", icon: Clock },
     { id: "reports", name: "Reports", icon: DollarSign },
     { id: "billing", name: "Billing", icon: DollarSign },
+    ...(isOrgElevated ? [{ id: "organization", name: "Organization", icon: Building2 }] : []),
   ];
 
   return (
@@ -585,6 +604,9 @@ const VADemo = () => {
           {activeTab === "time" && <TimeTracking {...shared} />}
           {activeTab === "reports" && <Reports {...shared} />}
           {activeTab === "billing" && <Billing {...shared} uiSettings={uiSettings} />}
+          {activeTab === "organization" && isOrgElevated && (
+            <Organization {...shared} employees={employees} org={getCurrentOrg()} />
+          )}
         </React.Suspense>
       </main>
 
@@ -609,6 +631,7 @@ const VADemo = () => {
           templates={taskTemplates}
           onSaveTemplate={(tpl) => setTaskTemplates(prev => [tpl, ...prev])}
           onApplyTemplate={() => {}}
+          employees={employees}
           onClose={() => {
             setShowNewTaskModal(false);
             setSelectedTask(null);

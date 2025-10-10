@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, FolderOpen } from "lucide-react";
 
-export default function TaskModal({ task, tasks, setTasks, clients, onClose, templates = [], onSaveTemplate, onApplyTemplate }) {
+export default function TaskModal({ task, tasks, setTasks, clients, onClose, templates = [], onSaveTemplate, onApplyTemplate, employees = [] }) {
   if (clients.length === 0) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -20,6 +20,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
     title: "",
     description: "",
     clientId: clients[0]?.id || 1,
+    assigneeEmail: "",
     project: "",
     priority: "Medium",
     status: "To Do",
@@ -137,6 +138,20 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                 ))}
               </select>
             </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
+            <select
+              value={formData.assigneeEmail || ''}
+              onChange={(e) => setFormData({ ...formData, assigneeEmail: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Unassigned</option>
+              {employees.map(emp => (
+                <option key={emp.email} value={emp.email}>{emp.name} ({emp.role})</option>
+              ))}
+            </select>
+          </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Project/Category</label>

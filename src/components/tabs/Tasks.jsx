@@ -15,10 +15,12 @@ export default function Tasks({
   setShowNewTaskModal,
   setTasks,
   uiSettings,
+  employees = [],
 }) {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [clientFilter, setClientFilter] = useState("All Clients");
+  const [assigneeFilter, setAssigneeFilter] = useState("All Assignees");
   const [viewMode, setViewMode] = useState("list");
 
   const filteredTasks = useMemo(() => {
@@ -27,9 +29,11 @@ export default function Tasks({
                            task.description.toLowerCase().includes(searchText.toLowerCase());
       const matchesStatus = statusFilter === "All Status" || task.status === statusFilter;
       const matchesClient = clientFilter === "All Clients" || getClientName(task.clientId) === clientFilter;
-      return matchesSearch && matchesStatus && matchesClient;
+      const assigneeName = employees.find(e => e.email === task.assigneeEmail)?.name || 'Unassigned';
+      const matchesAssignee = assigneeFilter === 'All Assignees' || assigneeFilter === assigneeName || (assigneeFilter === 'Unassigned' && !task.assigneeEmail);
+      return matchesSearch && matchesStatus && matchesClient && matchesAssignee;
     });
-  }, [tasks, searchText, statusFilter, clientFilter, getClientName]);
+  }, [tasks, searchText, statusFilter, clientFilter, assigneeFilter, getClientName, employees]);
 
   const getCalendarWeeks = () => {
     const now = DateTime.now().setZone('Asia/Manila');
@@ -133,6 +137,17 @@ export default function Tasks({
               <option>All Clients</option>
               {clients.map((c) => (
                 <option key={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <select
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option>All Assignees</option>
+              <option>Unassigned</option>
+              {employees.map(e => (
+                <option key={e.email}>{e.name}</option>
               ))}
             </select>
           </div>
@@ -270,11 +285,14 @@ export default function Tasks({
                       </div>
                     )}
                     
-                    <div className="flex items-center space-x-6 text-sm text-gray-500">
+                  <div className="flex items-center space-x-6 text-sm text-gray-500">
                       <span className="flex items-center">
                         <Building2 className="h-4 w-4 mr-1" />
                         {client?.name}
                       </span>
+                    <span className="flex items-center">
+                      Assigned to: {employees.find(e => e.email === task.assigneeEmail)?.name || 'Unassigned'}
+                    </span>
                       <span className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
                         Due: {task.dueDate}
