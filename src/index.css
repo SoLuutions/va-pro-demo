@@ -5,11 +5,69 @@
 
 body { @apply bg-gray-50; }
 
+/* Deep Ocean Dark Mode Palette as CSS variables */
+:root.dark {
+  --do-bg-primary: #0B0C10;      /* Deep Black */
+  --do-bg-secondary: #0E2433;    /* Deep Ocean Blue */
+  --do-accent-1: #1F6FEB;        /* Electric Blue */
+  --do-accent-2: #00C2FF;        /* Aqua Glow */
+  --do-text-primary: #E6EDF3;    /* Off-White */
+  --do-text-secondary: #8B949E;  /* Cool Gray */
+  --do-border: #1C2A3A;          /* Dim Blue-Gray */
+  --do-surface: #111C26;         /* Steel Blue Black */
+  --do-success: #2EA043;         /* Sea Green */
+  --do-warning: #F0883E;         /* Coral Orange */
+  --do-error: #DA3633;           /* Crimson Red */
+}
+
 /* Global dark mode background */
 .dark body {
-  @apply bg-gray-900;
+  background-color: var(--do-bg-primary);
+  color: var(--do-text-primary);
   color-scheme: dark;
 }
+
+/* Generic dark surfaces and borders */
+.dark .surface {
+  background-color: var(--do-surface);
+  color: var(--do-text-primary);
+}
+.dark .surface-secondary {
+  background-color: var(--do-bg-secondary);
+  color: var(--do-text-primary);
+}
+.dark .border-do { border-color: var(--do-border); }
+.dark .text-secondary { color: var(--do-text-secondary); }
+.dark .btn-primary { background-color: var(--do-accent-1); color: var(--do-text-primary); }
+.dark .btn-primary:hover { background-color: #1a63d6; }
+.dark a { color: var(--do-accent-1); }
+.dark a:hover { color: var(--do-accent-2); }
+.dark .text-primary { color: var(--do-text-primary); }
+.dark .bg-surface { background-color: var(--do-surface); }
+.dark .bg-secondary { background-color: var(--do-bg-secondary); }
+.dark .border { border-color: var(--do-border) !important; }
+.dark .divide-y > :not([hidden]) ~ :not([hidden]) { border-top-color: var(--do-border); }
+
+/* Tables and dividers */
+.dark table { background-color: var(--do-surface); color: var(--do-text-primary); }
+.dark thead { background-color: var(--do-bg-secondary); }
+.dark tbody tr { border-bottom: 1px solid var(--do-border); }
+.dark tbody tr:nth-child(odd) { background-color: rgba(255,255,255,0.01); }
+.dark tbody tr:hover { background-color: rgba(31,111,235,0.08); }
+.dark hr, .dark .divider { border-color: var(--do-border); }
+
+/* Inputs */
+.dark input, .dark select, .dark textarea {
+  background-color: var(--do-surface);
+  border-color: var(--do-border);
+  color: var(--do-text-primary);
+}
+.dark ::placeholder { color: var(--do-text-secondary); }
+
+/* Alerts */
+.dark .alert-info { background-color: rgba(31,111,235,0.12); color: var(--do-text-primary); border-color: var(--do-border); }
+.dark .alert-warning { background-color: rgba(240,136,62,0.12); color: var(--do-text-primary); border-color: var(--do-border); }
+.dark .alert-error { background-color: rgba(218,54,51,0.12); color: var(--do-text-primary); border-color: var(--do-border); }
 
 /* Custom scrollbar styling */
 * {
