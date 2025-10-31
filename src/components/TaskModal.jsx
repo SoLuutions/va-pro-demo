@@ -89,17 +89,17 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border dark:border-[color:var(--ocean-border)]">
         <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white dark:bg-gray-900">
-          <h3 className="text-xl font-semibold text-gray-900">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             {task ? "Edit Task" : "Create New Task"}
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <X className="h-6 w-6" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Task Title *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Task Title *</label>
             <input
               type="text"
               required
@@ -111,7 +111,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -123,7 +123,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Client *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Client *</label>
               <select
                 required
                 value={formData.clientId}
@@ -139,7 +139,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Project/Category</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Project/Category</label>
               <input
                 type="text"
                 value={formData.project}
@@ -150,7 +150,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Priority</label>
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
@@ -163,7 +163,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -177,7 +177,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Due Date *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Due Date *</label>
               <input
                 type="date"
                 required
@@ -188,7 +188,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Recurring</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Recurring</label>
               <select
                 value={formData.recurring}
                 onChange={(e) => setFormData({ ...formData, recurring: e.target.value })}
@@ -203,11 +203,11 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
           </div>
 
           <div className="border-t pt-4 space-y-4">
-            <h4 className="font-medium text-gray-900">Task Settings</h4>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100">Task Settings</h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Estimated Time (hours)
                 </label>
                 <input
@@ -221,7 +221,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                   placeholder="2"
                 />
-                <p className="text-xs text-gray-500 mt-1">Timer will count down from this</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Timer will count down from this</p>
               </div>
 
               <div className="space-y-3 pt-2">
@@ -233,7 +233,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                     onChange={(e) => setFormData({ ...formData, billable: e.target.checked })}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="billable" className="ml-2 block text-sm text-gray-700">
+                  <label htmlFor="billable" className="ml-2 block text-sm text-gray-700 dark:text-gray-200">
                     Billable task
                   </label>
                 </div>
@@ -246,7 +246,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                     onChange={(e) => setFormData({ ...formData, allowOverrun: e.target.checked })}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="allowOverrun" className="ml-2 block text-sm text-gray-700">
+                  <label htmlFor="allowOverrun" className="ml-2 block text-sm text-gray-700 dark:text-gray-200">
                     Allow continuing past estimated time
                   </label>
                 </div>
@@ -255,18 +255,18 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
           </div>
 
           <div className="border-t pt-4 space-y-4">
-            <h4 className="font-medium text-gray-900">Files & Output</h4>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100">Files & Output</h4>
             
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   File Links
                 </label>
                 <a 
                   href="https://drive.google.com" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                  className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-[color:var(--ocean-bg-secondary)] rounded transition-colors"
                 >
                   <FolderOpen className="h-3 w-3" />
                   <span>Open Google Drive</span>
@@ -279,11 +279,11 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                 placeholder="Add links to Google Drive, Dropbox, or other storage (one per line)&#10;https://drive.google.com/file/...&#10;https://www.dropbox.com/..."
               />
-              <p className="text-xs text-gray-500 mt-1">Enter file links (one per line)</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Enter file links (one per line)</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                 Output Links
               </label>
               <textarea
@@ -293,7 +293,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                 placeholder="Add links to completed work output (one per line)&#10;https://drive.google.com/file/...&#10;https://www.dropbox.com/..."
               />
-              <p className="text-xs text-gray-500 mt-1">Enter output links (one per line)</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Enter output links (one per line)</p>
             </div>
           </div>
 
@@ -301,7 +301,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 border rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[color:var(--ocean-bg-secondary)]"
             >
               Cancel
             </button>

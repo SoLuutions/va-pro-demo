@@ -61,10 +61,30 @@ export default function Dashboard({
 
   useEffect(() => {
     const symbols = supported.filter(s => s !== base).join(',');
-    fetch(`https://api.exchangerate.host/latest?base=${base}&symbols=${symbols}`)
-      .then(r => r.json())
-      .then(d => setRates(d.rates))
-      .catch(() => setRates(null));
+    const load = async () => {
+      try {
+        const res = await fetch(`https://api.exchangerate.host/latest?base=${base}&symbols=${symbols}`);
+        const data = await res.json();
+        if (data && data.rates && Object.keys(data.rates).length) {
+          setRates(data.rates);
+          return;
+        }
+        throw new Error('Primary provider empty');
+      } catch (_) {
+        try {
+          const res2 = await fetch(`https://api.frankfurter.app/latest?from=${base}&to=${symbols}`);
+          const data2 = await res2.json();
+          if (data2 && data2.rates) {
+            setRates(data2.rates);
+            return;
+          }
+          setRates(null);
+        } catch {
+          setRates(null);
+        }
+      }
+    };
+    load();
   }, [base]);
 
   useEffect(() => {
@@ -151,9 +171,9 @@ export default function Dashboard({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border">
+        <div className="bg-white rounded-lg shadow-sm border dark:bg-gray-900 dark:border-[color:var(--ocean-border)]">
           <div className="p-4 border-b flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">Quick Links</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Quick Links</h3>
             <button
               onClick={handleAddLink}
               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
@@ -164,7 +184,7 @@ export default function Dashboard({
           </div>
           <div className="p-4">
             {quickLinks.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No quick links added yet. Click + to add one!</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 py-8">No quick links added yet. Click + to add one!</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {quickLinks.map(link => (
@@ -201,25 +221,25 @@ export default function Dashboard({
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border">
+        <div className="bg-white rounded-lg shadow-sm border dark:bg-gray-900 dark:border-[color:var(--ocean-border)]">
           <div className="p-4 border-b flex items-center space-x-2">
             <Clock className="h-5 w-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Client Timezones</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Client Timezones</h3>
           </div>
           <div className="p-4">
             {clients.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No clients added yet</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 py-8">No clients added yet</p>
             ) : (
               <div className="space-y-3">
                 {clientTimezones.map((ct, i) => (
-                  <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg dark:bg-gray-800">
                     <div>
-                      <p className="font-medium text-gray-900">{ct.name}</p>
-                      <p className="text-xs text-gray-500">{ct.timezone.replace('_', ' ')}</p>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{ct.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{ct.timezone.replace('_', ' ')}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold text-blue-600">{ct.currentTime.toFormat('h:mm a')}</p>
-                      <p className="text-xs text-gray-500">{ct.currentTime.toFormat('MMM d')}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{ct.currentTime.toFormat('MMM d')}</p>
                     </div>
                   </div>
                 ))}
@@ -229,22 +249,22 @@ export default function Dashboard({
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-white rounded-lg shadow-sm border dark:bg-gray-900 dark:border-[color:var(--ocean-border)]">
         <div className="p-4 border-b flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Currency Converter</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Currency Converter</h3>
           <div className="flex items-center space-x-2">
-            <select value={base} onChange={(e) => setBase(e.target.value)} className="border rounded px-2 py-1">
+            <select value={base} onChange={(e) => setBase(e.target.value)} className="border rounded px-2 py-1 dark:bg-gray-800 dark:text-gray-100">
               {supported.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-            <span className="text-gray-500">to</span>
-            <select value={target} onChange={(e) => setTarget(e.target.value)} className="border rounded px-2 py-1">
+            <span className="text-gray-500 dark:text-gray-400">to</span>
+            <select value={target} onChange={(e) => setTarget(e.target.value)} className="border rounded px-2 py-1 dark:bg-gray-800 dark:text-gray-100">
               {supported.filter(s => s !== base).map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-            <input type="number" min="0" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} className="border rounded px-2 py-1 w-28" />
+            <input type="number" min="0" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} className="border rounded px-2 py-1 w-28 dark:bg-gray-800 dark:text-gray-100" />
             <button onClick={addToHistory} className="px-3 py-1 bg-blue-600 text-white rounded">Convert & Track</button>
           </div>
         </div>
@@ -252,33 +272,36 @@ export default function Dashboard({
           {rates ? (
             <>
               <div className="flex flex-wrap items-baseline gap-3">
-                <div className="text-sm text-gray-600">1 {base} = <span className="font-semibold text-gray-900">{(rates[target] || 0).toFixed(4)}</span> {target}</div>
-                <div className="text-sm text-gray-600">{amount} {base} → <span className="font-semibold text-gray-900">{(amount * (rates[target] || 0)).toFixed(2)}</span> {target}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">1 {base} = <span className="font-semibold text-gray-900 dark:text-gray-100">{(rates[target] || 0).toFixed(4)}</span> {target}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{amount} {base} → <span className="font-semibold text-gray-900 dark:text-gray-100">{(amount * (rates[target] || 0)).toFixed(2)}</span> {target}</div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 {[...new Set(['PHP', ...clientCurrencies.filter(c => c !== base), ...supported.filter(s => s !== base)])]
                   .slice(0, 6)
                   .map(code => (
-                    <div key={code} className="p-3 bg-gray-50 rounded border text-center">
-                      <div className="text-xs text-gray-500">{base} → {code}</div>
-                      <div className="text-lg font-semibold text-gray-900">
+                    <div key={code} className="p-3 bg-gray-50 rounded border text-center dark:bg-gray-800 dark:border-gray-700">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{base} → {code}</div>
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {(amount * (rates[code] || 0)).toFixed(2)}
                       </div>
-                      <div className="text-[10px] text-gray-500 mt-1">1 {base} = {(rates[code] || 0).toFixed(4)} {code}</div>
+                      <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">1 {base} = {(rates[code] || 0).toFixed(4)} {code}</div>
                     </div>
                   ))}
               </div>
             </>
           ) : (
-            <div className="text-center text-gray-500">Rates unavailable</div>
+            <div className="text-center text-gray-500 dark:text-gray-400">Rates unavailable</div>
           )}
+        </div>
+        <div className="px-4 pb-4 text-[10px] text-gray-400 select-none">
+          Data from <span className="underline">exchangerate.host</span> and <span className="underline">frankfurter.app</span>
         </div>
         {history.length > 0 && (
           <div className="border-t p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">Recent Conversions</h4>
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Recent Conversions</h4>
             <div className="space-y-2 max-h-48 overflow-auto">
               {history.map(h => (
-                <div key={h.id} className="text-xs text-gray-600 flex justify-between">
+                <div key={h.id} className="text-xs text-gray-600 dark:text-gray-400 flex justify-between">
                   <span>{new Date(h.ts).toLocaleString()} — {h.amount} {h.base} → {h.result} {h.target}</span>
                   <span className="text-gray-500">@ {h.rate.toFixed(4)}</span>
                 </div>

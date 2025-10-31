@@ -65,10 +65,10 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border dark:border-[color:var(--ocean-border)]">
         <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white dark:bg-gray-900">
-          <h3 className="text-xl font-semibold text-gray-900">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             {client ? "Edit Client" : "Add New Client"}
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -76,7 +76,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Client Name *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Client Name *</label>
               <input
                 type="text"
                 required
@@ -87,7 +87,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Email *</label>
               <input
                 type="email"
                 required
@@ -98,7 +98,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Phone</label>
               <input
                 type="tel"
                 value={formData.phone}
@@ -108,7 +108,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Location</label>
               <input
                 type="text"
                 value={formData.location}
@@ -118,7 +118,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Timezone</label>
               <select
                 value={formData.timezone}
                 onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
@@ -190,7 +190,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hourly Rate *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Hourly Rate *</label>
               <div className="flex space-x-2">
                 <select
                   value={formData.currency}
@@ -216,7 +216,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Billing Frequency</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Billing Frequency</label>
               <select
                 value={formData.billing}
                 onChange={(e) => setFormData({ ...formData, billing: e.target.value })}
@@ -230,7 +230,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -244,7 +244,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Projects (comma-separated)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Projects (comma-separated)</label>
             <input
               type="text"
               value={formData.projects}
@@ -255,7 +255,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Client Assets / Links</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Client Assets / Links</label>
             <textarea
               value={formData.assets}
               onChange={(e) => setFormData({ ...formData, assets: e.target.value })}
@@ -266,7 +266,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Notes</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -304,11 +304,11 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
           </div>
 
           <div className="border-t pt-4 space-y-4">
-            <h4 className="font-medium text-gray-900">Time Tracking Settings</h4>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100">Time Tracking Settings</h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Daily Time Limit (hours)
                 </label>
                 <input
@@ -322,7 +322,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                   placeholder="4"
                 />
-                <p className="text-xs text-gray-500 mt-1">Leave empty for no limit</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave empty for no limit</p>
               </div>
 
               <div className="flex items-center pt-6">
@@ -333,20 +333,20 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                   onChange={(e) => setFormData({ ...formData, enforceTimeSlots: e.target.checked })}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label htmlFor="enforceTimeSlots" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="enforceTimeSlots" className="ml-2 block text-sm text-gray-700 dark:text-gray-200">
                   Enforce time slots (block timer outside hours)
                 </label>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Working Time Slots
               </label>
-              <div className="text-xs text-gray-500 mb-2">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Set the client's working hours (e.g., 4:00 AM to 3:00 PM)
               </div>
-              <div className="text-xs text-blue-600 mb-3">
+              <div className="text-xs text-blue-600 dark:text-blue-400 mb-3">
                 Times will be converted to GMT+8 (Philippine time) for your schedule
               </div>
               
@@ -355,7 +355,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                   <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-[color:var(--ocean-surface)] rounded-lg">
                     <div className="flex-1 grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Start Time</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Start Time</label>
                         <input
                           type="time"
                           value={slot.start}
@@ -368,7 +368,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">End Time</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">End Time</label>
                         <input
                           type="time"
                           value={slot.end}
@@ -382,7 +382,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                       </div>
                     </div>
                     <div className="flex-1">
-                      <label className="block text-xs text-gray-600 mb-1">Timezone</label>
+                      <label className="block text-xs text-gray-600 dark:text-gray-300 mb-1">Timezone</label>
                       <select
                         value={slot.tz}
                         onChange={(e) => {
@@ -433,7 +433,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50 dark:hover:bg-[color:var(--ocean-bg-secondary)]"
+              className="px-4 py-2 border rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[color:var(--ocean-bg-secondary)]"
             >
               Cancel
             </button>

@@ -81,13 +81,13 @@ export default function TimeTracking({
           const columnTasks = getTasksByStatus(column.id);
           return (
             <div key={column.id} className="flex flex-col">
-              <div className={`${column.color} border-2 rounded-t-lg p-3`}>
-                <h3 className="font-semibold text-gray-900 flex items-center justify-between">
+              <div className={`${column.color} border-2 rounded-t-lg p-3 dark:bg-gray-800 dark:border-gray-700`}>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center justify-between">
                   <span>{column.title}</span>
-                  <span className="bg-white px-2 py-1 rounded-full text-sm">{columnTasks.length}</span>
+                  <span className="bg-white px-2 py-1 rounded-full text-sm dark:bg-gray-700 dark:text-gray-100">{columnTasks.length}</span>
                 </h3>
               </div>
-              <div className="bg-gray-50 border-x-2 border-b-2 border-gray-200 rounded-b-lg p-2 flex-1 space-y-2 min-h-[500px]">
+              <div className="bg-gray-50 border-x-2 border-b-2 border-gray-200 rounded-b-lg p-2 flex-1 space-y-2 min-h-[500px] dark:bg-gray-900 dark:border-gray-700">
                 {columnTasks.map((task) => {
                   const client = clients.find((c) => c.id === task.clientId);
                   const isActive = activeTimer === task.id;
