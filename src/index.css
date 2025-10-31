@@ -14,6 +14,10 @@ body { @apply bg-gray-50; }
   --nava-surface: #FFFFFF;      /* Pure White */
   --nava-text: #0F172A;         /* Deep Navy */
   --nava-text-secondary: #475569; /* Slate Gray */
+  /* Legacy compat for components still using --ocean-* tokens */
+  --ocean-border: #e2e8f0;           /* Tailwind gray-200 */
+  --ocean-surface: var(--nava-surface);
+  --ocean-bg-secondary: #f1f5f9;     /* Tailwind slate-100 */
 }
 
 /* Global base and fonts */
@@ -42,6 +46,10 @@ body {
   --nava-surface: #1E293B;        /* Charcoal Blue */
   --nava-text: #F1F5F9;           /* Soft White */
   --nava-text-secondary: #CBD5E1; /* Mist Gray */
+  /* Legacy compat for components still using --ocean-* tokens */
+  --ocean-border: #334155;            /* Tailwind slate-700 */
+  --ocean-surface: var(--nava-surface);
+  --ocean-bg-secondary: color-mix(in oklab, var(--nava-surface) 85%, var(--nava-bg) 15%);
 }
 
 /* Custom scrollbar styling */
