@@ -477,7 +477,7 @@ const VADemo = () => {
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-8">
               <div className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">VA Pro</h1>
+                <h1 className="text-2xl font-bold font-outfit text-primary">NaVA</h1>
               </div>
               <div className="flex space-x-2 sm:space-x-3">
                 {tabs.map((tab) => {
@@ -488,7 +488,7 @@ const VADemo = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         activeTab === tab.id
-                          ? 'bg-blue-100 text-blue-700'
+                          ? 'bg-primary/10 text-gray-900'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
@@ -508,7 +508,8 @@ const VADemo = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">PH • {userProfile.timezone}</p>
               </div>
               <div 
-                className="h-8 w-8 rounded-full bg-blue-200 dark:bg-blue-700 cursor-pointer hover:bg-blue-300 dark:hover:bg-blue-600"
+                className="h-8 w-8 rounded-full" 
+                style={{ backgroundColor: 'var(--nava-accent-2)' }}
                 onClick={() => setShowProfileModal(true)}
               />
               <button
@@ -524,7 +525,7 @@ const VADemo = () => {
       </nav>
 
       {activeTimer && !showFocusMode && (
-        <div className="bg-blue-600 text-white py-3 px-4 sticky top-16 z-10">
+        <div className="bg-primary text-white py-3 px-4 sticky top-16 z-10">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="animate-pulse bg-white rounded-full h-3 w-3"></div>
@@ -533,7 +534,7 @@ const VADemo = () => {
                   {activeTask?.title} {isOnBreak && '(On Break)'}
                 </span>
                 {activeClient && (
-                  <span className="text-blue-200 ml-2">• {activeClient.name}</span>
+                  <span className="ml-2" style={{ color: 'color-mix(in oklab, white 70%, var(--nava-accent-1))' }}>• {activeClient.name}</span>
                 )}
               </div>
             </div>
@@ -555,7 +556,7 @@ const VADemo = () => {
               <div className="text-2xl font-mono font-bold">{formatTime(timerSeconds)}</div>
               <button
                 onClick={() => setShowFocusMode(true)}
-                className="p-2 bg-blue-700 hover:bg-blue-800 rounded-lg"
+                className="p-2 bg-white/10 hover:bg-white/15 rounded-lg"
                 title="Enter Focus Mode"
               >
                 <Maximize2 className="h-5 w-5" />
