@@ -6,6 +6,7 @@ export default function TimeTracking({
   tasks,
   activeTimer,
   setActiveTimer,
+  stopTimerAndLog,
   timerSeconds,
   formatTime,
   getClientName,
@@ -65,7 +66,7 @@ export default function TimeTracking({
             <div className="flex items-center space-x-4">
               <div className="text-3xl font-mono font-bold text-blue-600">{formatTime(timerSeconds)}</div>
               <button
-                onClick={() => setActiveTimer(null)}
+                onClick={() => stopTimerAndLog()}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center space-x-2"
               >
                 <span>■</span>
@@ -137,7 +138,11 @@ export default function TimeTracking({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveTimer(isActive ? null : task.id);
+                              if (isActive) {
+                                stopTimerAndLog();
+                              } else {
+                                setActiveTimer(task.id);
+                              }
                             }}
                             className={`w-full py-1.5 rounded-md text-xs font-medium flex items-center justify-center space-x-1 transition-colors ${
                               isActive
