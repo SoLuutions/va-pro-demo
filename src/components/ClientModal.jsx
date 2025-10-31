@@ -13,10 +13,13 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
     billing: "Monthly",
     notes: "",
     projects: "",
+    assets: "",
     status: "Active",
     dailyTimeLimitMin: "",
     timeSlots: [],
-    enforceTimeSlots: false
+    enforceTimeSlots: false,
+    photoUrl: "",
+    logoUrl: ""
   });
 
   useEffect(() => {
@@ -27,6 +30,15 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
       });
     }
   }, [client]);
+
+  const handleImageUpload = (file, key) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData(prev => ({ ...prev, [key]: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -51,8 +63,8 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+      <div className="bg-white dark:bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border dark:border-[color:var(--ocean-border)]">
+        <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white dark:bg-gray-900">
           <h3 className="text-xl font-semibold text-gray-900">
             {client ? "Edit Client" : "Add New Client"}
           </h3>
@@ -70,7 +82,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               />
             </div>
 
@@ -81,7 +93,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               />
             </div>
 
@@ -91,7 +103,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               />
             </div>
 
@@ -101,7 +113,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               />
             </div>
 
@@ -110,7 +122,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
               <select
                 value={formData.timezone}
                 onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               >
                 <optgroup label="North America">
                   <option value="America/New_York">America/New York (EST/EDT)</option>
@@ -183,7 +195,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                 <select
                   value={formData.currency}
                   onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                 >
                   <option value="USD">USD</option>
                   <option value="PHP">PHP</option>
@@ -197,7 +209,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                   required
                   value={formData.rate}
                   onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
-                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                   placeholder="15.00"
                 />
               </div>
@@ -208,7 +220,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
               <select
                 value={formData.billing}
                 onChange={(e) => setFormData({ ...formData, billing: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               >
                 <option value="Monthly">Monthly</option>
                 <option value="Bi-monthly">Bi-monthly</option>
@@ -222,7 +234,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -237,8 +249,19 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
               type="text"
               value={formData.projects}
               onChange={(e) => setFormData({ ...formData, projects: e.target.value })}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               placeholder="Social Media, Content Writing, Data Entry"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Client Assets / Links</label>
+            <textarea
+              value={formData.assets}
+              onChange={(e) => setFormData({ ...formData, assets: e.target.value })}
+              rows="3"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
+              placeholder="Add common links (one per line): websites, social media, Drive/OneDrive folders, brand assets, etc."
             />
           </div>
 
@@ -248,9 +271,36 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows="3"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               placeholder="Additional notes about the client..."
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Client Photo</label>
+              {formData.photoUrl && (
+                <img src={formData.photoUrl} alt="Client" className="h-16 w-16 rounded-full object-cover mb-2 border" />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e.target.files?.[0], 'photoUrl')}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Client Logo</label>
+              {formData.logoUrl && (
+                <img src={formData.logoUrl} alt="Logo" className="h-12 w-12 rounded object-contain mb-2 border bg-white" />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e.target.files?.[0], 'logoUrl')}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
+              />
+            </div>
           </div>
 
           <div className="border-t pt-4 space-y-4">
@@ -259,15 +309,18 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Daily Time Limit (minutes)
+                  Daily Time Limit (hours)
                 </label>
                 <input
                   type="number"
                   min="0"
-                  value={formData.dailyTimeLimitMin || ""}
-                  onChange={(e) => setFormData({ ...formData, dailyTimeLimitMin: e.target.value ? parseInt(e.target.value) : null })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="240 (4 hours)"
+                  value={formData.dailyTimeLimitMin ? Math.round(formData.dailyTimeLimitMin / 60) : ""}
+                  onChange={(e) => {
+                    const hours = e.target.value ? parseInt(e.target.value) : null;
+                    setFormData({ ...formData, dailyTimeLimitMin: hours != null ? hours * 60 : null });
+                  }}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
+                  placeholder="4"
                 />
                 <p className="text-xs text-gray-500 mt-1">Leave empty for no limit</p>
               </div>
@@ -299,7 +352,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
               
               <div className="space-y-3">
                 {formData.timeSlots.map((slot, index) => (
-                  <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-[color:var(--ocean-surface)] rounded-lg">
                     <div className="flex-1 grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">Start Time</label>
@@ -311,7 +364,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                             newSlots[index].start = e.target.value;
                             setFormData({ ...formData, timeSlots: newSlots });
                           }}
-                          className="w-full px-2 py-1 border rounded text-sm"
+                          className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-800 dark:text-gray-100"
                         />
                       </div>
                       <div>
@@ -324,7 +377,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                             newSlots[index].end = e.target.value;
                             setFormData({ ...formData, timeSlots: newSlots });
                           }}
-                          className="w-full px-2 py-1 border rounded text-sm"
+                          className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-800 dark:text-gray-100"
                         />
                       </div>
                     </div>
@@ -337,7 +390,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                           newSlots[index].tz = e.target.value;
                           setFormData({ ...formData, timeSlots: newSlots });
                         }}
-                        className="w-full px-2 py-1 border rounded text-sm"
+                        className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-800 dark:text-gray-100"
                       >
                         <option value="Asia/Manila">Philippine Time (GMT+8)</option>
                         <option value="America/New_York">New York (EST/EDT)</option>
@@ -380,7 +433,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50 dark:hover:bg-[color:var(--ocean-bg-secondary)]"
             >
               Cancel
             </button>

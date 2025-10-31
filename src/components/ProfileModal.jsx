@@ -9,6 +9,13 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
     avatarUrl: profile?.avatarUrl || ''
   });
 
+  const handleImageUpload = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setFormData(prev => ({ ...prev, avatarUrl: reader.result }));
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData);
@@ -28,7 +35,7 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border dark:border-[color:var(--ocean-border)]">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Profile & Settings</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -37,6 +44,23 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="flex items-center space-x-3">
+            {formData.avatarUrl && (
+              <img src={formData.avatarUrl} alt="Avatar" className="h-12 w-12 rounded-full object-cover border" />
+            )}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Upload Avatar (optional)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e.target.files?.[0])}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Full Name

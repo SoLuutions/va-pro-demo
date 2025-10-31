@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { DateTime } from "luxon";
 import { Timer, CheckCircle, Users, Square, ListChecks, ExternalLink, Video, MessageSquare, FolderOpen, Globe, Calendar, Clock, Plus, X, Edit2 } from "lucide-react";
 
@@ -25,6 +25,43 @@ export default function Dashboard({
   const activeTasksCount = tasks.filter((t) => t.status === "In Progress").length;
   const completedTasksCount = tasks.filter((t) => t.status === "Completed").length;
   const activeTask = tasks.find((t) => t.id === activeTimer);
+
+  // Clock & seasonal greeting
+  const [now, setNow] = useState(DateTime.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(DateTime.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const greeting = useMemo(() => {
+    const hour = now.hour;
+    let base = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const month = now.month;
+    const seasonal = (
+      month === 12 ? ' Happy Holidays!' :
+      month === 1 ? ' Welcome to the new year!' :
+      month >= 2 && month <= 3 ? ' Stay inspired this season.' :
+      month >= 4 && month <= 5 ? ' Fresh starts and focus.' :
+      month >= 6 && month <= 8 ? ' Stay cool and productive.' :
+      month >= 9 && month <= 11 ? ' Finishing strong this year.' : ''
+    );
+    return base + seasonal;
+  }, [now]);
+
+  // Currency converter
+  const [rates, setRates] = useState(null);
+  const [base, setBase] = useState('USD');
+  const [amount, setAmount] = useState(1);
+  const supported = ['USD','PHP','EUR','GBP','AUD','CAD'];
+  const clientCurrencies = Array.from(new Set(clients.map(c => c.currency).filter(c => supported.includes(c))));
+
+  useEffect(() => {
+    const symbols = supported.filter(s => s !== base).join(',');
+    fetch(`https://api.exchangerate.host/latest?base=${base}&symbols=${symbols}`)
+      .then(r => r.json())
+      .then(d => setRates(d.rates))
+      .catch(() => setRates(null));
+  }, [base]);
 
   const getIconComponent = (iconName) => {
     const icons = {
@@ -74,6 +111,15 @@ export default function Dashboard({
 
   return (
     <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border p-4 flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-500">{now.toFormat('cccc, LLL d')}</p>
+          <h2 className="text-2xl font-bold text-gray-900">{greeting}</h2>
+        </div>
+        <div className="text-right">
+          <div className="text-3xl font-mono font-semibold text-blue-600">{now.toFormat('hh:mm:ss a')}</div>
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card icon={<Timer className="h-6 w-6 text-blue-600" />} label="Hours Today" value={totalHoursToday.toFixed(1)} color="bg-blue-100" />
         <Card icon={<CheckCircle className="h-6 w-6 text-green-600" />} label="Active Tasks" value={activeTasksCount} color="bg-green-100" />
@@ -157,6 +203,36 @@ export default function Dashboard({
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Currency Converter</h3>
+          <div className="flex items-center space-x-2">
+            <select value={base} onChange={(e) => setBase(e.target.value)} className="border rounded px-2 py-1">
+              {supported.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            <input type="number" min="0" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} className="border rounded px-2 py-1 w-28" />
+          </div>
+        </div>
+        <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+          {rates ? (
+            [...new Set(['PHP', ...clientCurrencies.filter(c => c !== base), ...supported.filter(s => s !== base)])]
+              .slice(0, 6)
+              .map(code => (
+                <div key={code} className="p-3 bg-gray-50 rounded border text-center">
+                  <div className="text-xs text-gray-500">{base} → {code}</div>
+                  <div className="text-lg font-semibold text-gray-900">
+                    {(amount * (rates[code] || 0)).toFixed(2)}
+                  </div>
+                </div>
+              ))
+          ) : (
+            <div className="col-span-full text-center text-gray-500">Rates unavailable</div>
+          )}
         </div>
       </div>
 

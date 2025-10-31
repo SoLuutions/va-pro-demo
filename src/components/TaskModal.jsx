@@ -87,8 +87,8 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+      <div className="bg-white dark:bg-gray-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border dark:border-[color:var(--ocean-border)]">
+        <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white dark:bg-gray-900">
           <h3 className="text-xl font-semibold text-gray-900">
             {task ? "Edit Task" : "Create New Task"}
           </h3>
@@ -105,7 +105,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
               required
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               placeholder="e.g., Create social media content calendar"
             />
           </div>
@@ -116,7 +116,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows="3"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               placeholder="Detailed description of the task..."
             />
           </div>
@@ -128,7 +128,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                 required
                 value={formData.clientId}
                 onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               >
                 {clients.map((client) => (
                   <option key={client.id} value={client.id}>
@@ -144,7 +144,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                 type="text"
                 value={formData.project}
                 onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                 placeholder={selectedClient?.projects?.[0] || "Project name"}
               />
             </div>
@@ -154,7 +154,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
               <select
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               >
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -167,7 +167,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               >
                 <option value="To Do">To Do</option>
                 <option value="In Progress">In Progress</option>
@@ -183,7 +183,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                 required
                 value={formData.dueDate}
                 onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               />
             </div>
 
@@ -192,7 +192,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
               <select
                 value={formData.recurring}
                 onChange={(e) => setFormData({ ...formData, recurring: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               >
                 <option value="None">None</option>
                 <option value="Daily">Daily</option>
@@ -208,15 +208,18 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Estimated Time (minutes)
+                  Estimated Time (hours)
                 </label>
                 <input
                   type="number"
                   min="0"
-                  value={formData.estimatedMin || ""}
-                  onChange={(e) => setFormData({ ...formData, estimatedMin: e.target.value ? parseInt(e.target.value) : null })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="120 (2 hours)"
+                  value={formData.estimatedMin ? Math.round(formData.estimatedMin / 60) : ""}
+                  onChange={(e) => {
+                    const hours = e.target.value ? parseInt(e.target.value) : null;
+                    setFormData({ ...formData, estimatedMin: hours != null ? hours * 60 : null });
+                  }}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
+                  placeholder="2"
                 />
                 <p className="text-xs text-gray-500 mt-1">Timer will count down from this</p>
               </div>
@@ -228,7 +231,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                     id="billable"
                     checked={formData.billable}
                     onChange={(e) => setFormData({ ...formData, billable: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="billable" className="ml-2 block text-sm text-gray-700">
                     Billable task
@@ -241,7 +244,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                     id="allowOverrun"
                     checked={formData.allowOverrun !== false}
                     onChange={(e) => setFormData({ ...formData, allowOverrun: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="allowOverrun" className="ml-2 block text-sm text-gray-700">
                     Allow continuing past estimated time
@@ -273,7 +276,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                 value={formData.fileLinks || ""}
                 onChange={(e) => setFormData({ ...formData, fileLinks: e.target.value })}
                 rows="3"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                 placeholder="Add links to Google Drive, Dropbox, or other storage (one per line)&#10;https://drive.google.com/file/...&#10;https://www.dropbox.com/..."
               />
               <p className="text-xs text-gray-500 mt-1">Enter file links (one per line)</p>
@@ -287,7 +290,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
                 value={formData.outputLinks || ""}
                 onChange={(e) => setFormData({ ...formData, outputLinks: e.target.value })}
                 rows="3"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
                 placeholder="Add links to completed work output (one per line)&#10;https://drive.google.com/file/...&#10;https://www.dropbox.com/..."
               />
               <p className="text-xs text-gray-500 mt-1">Enter output links (one per line)</p>
