@@ -16,6 +16,7 @@ export default function Dashboard({
   stopTimerAndLog,
   quickLinks = [],
   setQuickLinks,
+  userProfile,
 }) {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [editingLink, setEditingLink] = useState(null);
@@ -35,23 +36,26 @@ export default function Dashboard({
 
   const greeting = useMemo(() => {
     const hour = now.hour;
-    let base = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-    const month = now.month;
-    const seasonal = (
-      month === 12 ? ' Happy Holidays!' :
-      month === 1 ? ' Welcome to the new year!' :
-      month >= 2 && month <= 3 ? ' Stay inspired this season.' :
-      month >= 4 && month <= 5 ? ' Fresh starts and focus.' :
-      month >= 6 && month <= 8 ? ' Stay cool and productive.' :
-      month >= 9 && month <= 11 ? ' Finishing strong this year.' : ''
-    );
-    return base + seasonal;
-  }, [now]);
+    const base = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const name = (userProfile?.name || '').trim();
+    const activeCount = tasks.filter(t => t.status === 'In Progress').length;
+    const nextDue = tasks
+      .filter(t => t.dueDate)
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))[0];
+    const focus = activeCount > 0
+      ? `${activeCount} task${activeCount > 1 ? 's' : ''} in progress`
+      : nextDue ? `Next due: ${nextDue.title}` : `Let's plan your day`;
+    return `${base}${name ? `, ${name}` : ''}. ${focus}.`;
+  }, [now, tasks, userProfile]);
 
   // Currency converter
   const [rates, setRates] = useState(null);
   const [base, setBase] = useState('USD');
+  const [target, setTarget] = useState('PHP');
   const [amount, setAmount] = useState(1);
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('va_pro_conversion_history') || '[]'); } catch { return []; }
+  });
   const supported = ['USD','PHP','EUR','GBP','AUD','CAD'];
   const clientCurrencies = Array.from(new Set(clients.map(c => c.currency).filter(c => supported.includes(c))));
 
@@ -62,6 +66,25 @@ export default function Dashboard({
       .then(d => setRates(d.rates))
       .catch(() => setRates(null));
   }, [base]);
+
+  useEffect(() => {
+    try { localStorage.setItem('va_pro_conversion_history', JSON.stringify(history.slice(0, 50))); } catch {}
+  }, [history]);
+
+  const addToHistory = () => {
+    if (!rates || !rates[target]) return;
+    const rate = rates[target];
+    const result = +(amount * rate).toFixed(4);
+    setHistory(prev => [{
+      id: Date.now(),
+      ts: new Date().toISOString(),
+      base,
+      target,
+      amount,
+      rate,
+      result,
+    }, ...prev]);
+  };
 
   const getIconComponent = (iconName) => {
     const icons = {
@@ -215,25 +238,54 @@ export default function Dashboard({
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
+            <span className="text-gray-500">to</span>
+            <select value={target} onChange={(e) => setTarget(e.target.value)} className="border rounded px-2 py-1">
+              {supported.filter(s => s !== base).map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
             <input type="number" min="0" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} className="border rounded px-2 py-1 w-28" />
+            <button onClick={addToHistory} className="px-3 py-1 bg-blue-600 text-white rounded">Convert & Track</button>
           </div>
         </div>
-        <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+        <div className="p-4 space-y-4">
           {rates ? (
-            [...new Set(['PHP', ...clientCurrencies.filter(c => c !== base), ...supported.filter(s => s !== base)])]
-              .slice(0, 6)
-              .map(code => (
-                <div key={code} className="p-3 bg-gray-50 rounded border text-center">
-                  <div className="text-xs text-gray-500">{base} → {code}</div>
-                  <div className="text-lg font-semibold text-gray-900">
-                    {(amount * (rates[code] || 0)).toFixed(2)}
-                  </div>
-                </div>
-              ))
+            <>
+              <div className="flex flex-wrap items-baseline gap-3">
+                <div className="text-sm text-gray-600">1 {base} = <span className="font-semibold text-gray-900">{(rates[target] || 0).toFixed(4)}</span> {target}</div>
+                <div className="text-sm text-gray-600">{amount} {base} → <span className="font-semibold text-gray-900">{(amount * (rates[target] || 0)).toFixed(2)}</span> {target}</div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {[...new Set(['PHP', ...clientCurrencies.filter(c => c !== base), ...supported.filter(s => s !== base)])]
+                  .slice(0, 6)
+                  .map(code => (
+                    <div key={code} className="p-3 bg-gray-50 rounded border text-center">
+                      <div className="text-xs text-gray-500">{base} → {code}</div>
+                      <div className="text-lg font-semibold text-gray-900">
+                        {(amount * (rates[code] || 0)).toFixed(2)}
+                      </div>
+                      <div className="text-[10px] text-gray-500 mt-1">1 {base} = {(rates[code] || 0).toFixed(4)} {code}</div>
+                    </div>
+                  ))}
+              </div>
+            </>
           ) : (
-            <div className="col-span-full text-center text-gray-500">Rates unavailable</div>
+            <div className="text-center text-gray-500">Rates unavailable</div>
           )}
         </div>
+        {history.length > 0 && (
+          <div className="border-t p-4">
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">Recent Conversions</h4>
+            <div className="space-y-2 max-h-48 overflow-auto">
+              {history.map(h => (
+                <div key={h.id} className="text-xs text-gray-600 flex justify-between">
+                  <span>{new Date(h.ts).toLocaleString()} — {h.amount} {h.base} → {h.result} {h.target}</span>
+                  <span className="text-gray-500">@ {h.rate.toFixed(4)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border">
