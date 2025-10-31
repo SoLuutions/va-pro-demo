@@ -92,13 +92,7 @@ export default function Landing({ onGetStarted, onGoToLogin, onGoToRegister }) {
               <li className="p-3 bg-gray-50 dark:bg-gray-800 rounded">Billing and invoices from tracked time</li>
             </ul>
           </div>
-          <div className="rounded-xl overflow-hidden border">
-            <img
-              src="https://images.pexels.com/photos/7709287/pexels-photo-7709287.jpeg?cs=srgb&dl=pexels-mart-production-7709287.jpg&fm=jpg&_gl=1*gk6rot*_ga*MTk3MzgzNzEyMS4xNzYxOTMwMDQ4*_ga_8JE65Q40S6*czE3NjE5MzAwNDgkbzEkZzEkdDE3NjE5MzAwNjkkajM5JGwwJGgw"
-              alt="Agency whitelabeled workspace visual"
-              className="w-full h-full object-cover"
-            />
-          </div>
+          
         </div>
       </section>
 
