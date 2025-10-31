@@ -1,6 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function Landing({ onGetStarted, onGoToLogin, onGoToRegister }) {
+  const features = [
+    { title: 'Focus Mode', subtitle: 'Stay on task' },
+    { title: 'Quick Links', subtitle: 'Jump faster' },
+    { title: 'Smart EOD', subtitle: 'Daily wrap-up, auto-summarized' },
+    { title: 'Billing', subtitle: 'Invoice-ready time & reports' },
+    { title: 'Task Management', subtitle: 'Organize work effortlessly' },
+  ];
+
+  const [featureIndex, setFeatureIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setFeatureIndex((i) => (i + 1) % features.length);
+    }, 3500);
+    return () => clearInterval(id);
+  }, []);
+
+  const leftFeature = features[featureIndex % features.length];
+  const rightFeature = features[(featureIndex + 1) % features.length];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] to-white dark:from-[#0B1120] dark:to-[#0B1120]">
       <header className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
@@ -34,19 +54,53 @@ export default function Landing({ onGetStarted, onGoToLogin, onGoToRegister }) {
           </ul>
         </div>
         <div className="bg-white dark:bg-gray-900 border rounded-xl p-6 shadow-lg">
-          <div className="aspect-video rounded-lg bg-gray-100 dark:bg-gray-800" />
+          <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <img
+              src="https://images.pexels.com/photos/7709287/pexels-photo-7709287.jpeg?cs=srgb&dl=pexels-mart-production-7709287.jpg&fm=jpg&_gl=1*gk6rot*_ga*MTk3MzgzNzEyMS4xNzYxOTMwMDQ4*_ga_8JE65Q40S6*czE3NjE5MzAwNDgkbzEkZzEkdDE3NjE5MzAwNjkkajM5JGwwJGgw"
+              alt="Virtual assistant dashboard preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="p-4 rounded bg-gray-50 dark:bg-gray-800">
-              <p className="text-sm text-gray-500">Focus Mode</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">Stay on task</p>
+            <div className="p-4 rounded bg-gray-50 dark:bg-gray-800 transition-all duration-500">
+              <p className="text-sm text-gray-500">{leftFeature.title}</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{leftFeature.subtitle}</p>
             </div>
-            <div className="p-4 rounded bg-gray-50 dark:bg-gray-800">
-              <p className="text-sm text-gray-500">Quick Links</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">Jump faster</p>
+            <div className="p-4 rounded bg-gray-50 dark:bg-gray-800 transition-all duration-500">
+              <p className="text-sm text-gray-500">{rightFeature.title}</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{rightFeature.subtitle}</p>
             </div>
           </div>
         </div>
       </main>
+
+      <section className="max-w-7xl mx-auto px-6 pb-12">
+        <div className="rounded-2xl border bg-white dark:bg-gray-900 p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-brand-soft text-brand text-sm font-medium">Whitelabeling</div>
+            <h2 className="mt-4 font-manrope text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-gray-100">
+              Whitelabel NaVA for your Virtual Assistant agency
+            </h2>
+            <p className="mt-2 text-gray-600 dark:text-gray-300">
+              Use NaVA as your own branded platform: custom domain, logo, and colors. Offer client portals, time tracking,
+              billing, task management, and focused workflows under your agency’s identity.
+            </p>
+            <ul className="mt-4 space-y-2 text-gray-700 dark:text-gray-200">
+              <li className="p-3 bg-gray-50 dark:bg-gray-800 rounded">Custom branding and domains</li>
+              <li className="p-3 bg-gray-50 dark:bg-gray-800 rounded">Client portals with permissions</li>
+              <li className="p-3 bg-gray-50 dark:bg-gray-800 rounded">Smart EOD summaries and reports</li>
+              <li className="p-3 bg-gray-50 dark:bg-gray-800 rounded">Billing and invoices from tracked time</li>
+            </ul>
+          </div>
+          <div className="rounded-xl overflow-hidden border">
+            <img
+              src="https://images.pexels.com/photos/7709287/pexels-photo-7709287.jpeg?cs=srgb&dl=pexels-mart-production-7709287.jpg&fm=jpg&_gl=1*gk6rot*_ga*MTk3MzgzNzEyMS4xNzYxOTMwMDQ4*_ga_8JE65Q40S6*czE3NjE5MzAwNDgkbzEkZzEkdDE3NjE5MzAwNjkkajM5JGwwJGgw"
+              alt="Agency whitelabeled workspace visual"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </section>
 
       <section className="max-w-7xl mx-auto px-6 pb-12">
         <div className="rounded-2xl border bg-white dark:bg-gray-900 p-8">
