@@ -97,20 +97,6 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
           <div className="pt-2 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Dark mode</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Apply dark theme to the entire app</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => onUpdateUiSettings({ ...uiSettings, darkMode: !uiSettings.darkMode })}
-                className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                {uiSettings.darkMode ? 'On' : 'Off'}
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">NDA mode</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Hide sensitive names/amounts for screen sharing</p>
               </div>

@@ -8,6 +8,8 @@ import {
   DollarSign,
   Maximize2,
   LogOut,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import ClientModal from "./ClientModal";
@@ -500,6 +502,13 @@ const VADemo = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
+              <button
+                onClick={() => setUiSettings(prev => ({ ...prev, darkMode: !prev.darkMode }))}
+                className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                title={uiSettings.darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {uiSettings.darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
               <div 
                 className="text-right cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded"
                 onClick={() => setShowProfileModal(true)}

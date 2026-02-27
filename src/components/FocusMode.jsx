@@ -34,7 +34,7 @@ export default function FocusMode({
         const elapsed = Math.floor((Date.now() - pomodoroStartTime) / 1000);
         const phaseTime = pomodoroPhase === 'work' ? POMODORO_WORK_TIME : POMODORO_BREAK_TIME;
         const timeLeft = Math.max(0, phaseTime - elapsed);
-        
+
         setPomodoroTimeLeft(timeLeft);
 
         if (timeLeft === 0) {
@@ -58,9 +58,11 @@ export default function FocusMode({
 
   const displayTime = pomodoroEnabled
     ? formatTimeRemaining(pomodoroTimeLeft)
-    : (timeInfo.isOverrun
-      ? formatTimeRemaining(timeInfo.overrunSeconds)
-      : formatTimeRemaining(timeInfo.remainingSeconds));
+    : (!task.estimatedMin
+      ? formatTimeRemaining(timerSeconds)
+      : (timeInfo.isOverrun
+        ? formatTimeRemaining(timeInfo.overrunSeconds)
+        : formatTimeRemaining(timeInfo.remainingSeconds)));
 
   const togglePomodoro = () => {
     setPomodoroEnabled(!pomodoroEnabled);
@@ -74,11 +76,10 @@ export default function FocusMode({
       <div className="absolute top-6 right-6 flex items-center space-x-3">
         <button
           onClick={togglePomodoro}
-          className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center space-x-2 transition-all ${
-            pomodoroEnabled
+          className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center space-x-2 transition-all ${pomodoroEnabled
               ? 'bg-purple-600 hover:bg-purple-700 text-white'
               : 'bg-gray-800 hover:bg-gray-700 text-white'
-          }`}
+            }`}
           title="Toggle Pomodoro Timer (25/5 cycles)"
         >
           <Timer className="h-4 w-4" />
@@ -100,11 +101,10 @@ export default function FocusMode({
         </div>
 
         {pomodoroEnabled && (
-          <div className={`py-2 px-4 rounded-lg inline-block ${
-            pomodoroPhase === 'work' 
-              ? 'bg-purple-500 text-white' 
+          <div className={`py-2 px-4 rounded-lg inline-block ${pomodoroPhase === 'work'
+              ? 'bg-purple-500 text-white'
               : 'bg-green-500 text-white'
-          }`}>
+            }`}>
             <div className="flex items-center space-x-2">
               <Timer className="h-4 w-4" />
               <span className="font-semibold text-sm">
@@ -123,15 +123,14 @@ export default function FocusMode({
           </div>
         )}
 
-        <div className="space-y-3">
-          <div className="text-center">
-            <div className={`text-7xl font-mono font-bold mb-2 ${
-              pomodoroEnabled && pomodoroPhase === 'break' 
+        <div className="space-y-3 w-full px-2">
+          <div className="text-center w-full">
+            <div className={`text-[15vw] sm:text-7xl md:text-8xl lg:text-[7rem] font-mono font-bold mb-2 break-words tracking-tighter sm:tracking-normal ${pomodoroEnabled && pomodoroPhase === 'break'
                 ? 'text-green-400'
-                : (pomodoroEnabled 
-                  ? 'text-purple-400' 
+                : (pomodoroEnabled
+                  ? 'text-purple-400'
                   : (timeInfo.isOverrun ? 'text-red-400' : 'text-white'))
-            }`}>
+              }`}>
               {displayTime}
             </div>
             {!pomodoroEnabled && timeInfo.isOverrun && (
@@ -158,12 +157,11 @@ export default function FocusMode({
             <div className="w-full max-w-2xl mx-auto">
               <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className={`h-full transition-all duration-500 ${
-                    pomodoroEnabled
+                  className={`h-full transition-all duration-500 ${pomodoroEnabled
                       ? (pomodoroPhase === 'work' ? 'bg-purple-500' : 'bg-green-500')
                       : (timeInfo.isOverrun ? 'bg-red-500' : 'bg-blue-500')
-                  }`}
-                  style={{ 
+                    }`}
+                  style={{
                     width: pomodoroEnabled
                       ? `${((pomodoroPhase === 'work' ? POMODORO_WORK_TIME : POMODORO_BREAK_TIME) - pomodoroTimeLeft) / (pomodoroPhase === 'work' ? POMODORO_WORK_TIME : POMODORO_BREAK_TIME) * 100}%`
                       : `${Math.min(100, timeInfo.percentComplete)}%`
@@ -197,11 +195,10 @@ export default function FocusMode({
         <div className="flex items-center justify-center space-x-4">
           <button
             onClick={onBreak}
-            className={`px-6 py-3 rounded-lg font-semibold text-base flex items-center space-x-2 transition-all ${
-              isOnBreak
+            className={`px-6 py-3 rounded-lg font-semibold text-base flex items-center space-x-2 transition-all ${isOnBreak
                 ? 'bg-green-600 hover:bg-green-700 text-white'
                 : 'bg-yellow-600 hover:bg-yellow-700 text-white'
-            }`}
+              }`}
           >
             <Coffee className="h-5 w-5" />
             <span>{isOnBreak ? 'End Break & Resume' : 'Take a Break'}</span>
