@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export default function ProfileModal({ profile, onSave, onClose, uiSettings, onUpdateUiSettings }) {
   const [formData, setFormData] = useState({
