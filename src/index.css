@@ -82,7 +82,11 @@ body {
 }
 
 /* Borders */
-.dark .border {
+.dark .border,
+.dark .border-t,
+.dark .border-b,
+.dark .border-l,
+.dark .border-r {
   border-color: var(--ocean-border) !important;
 }
 
