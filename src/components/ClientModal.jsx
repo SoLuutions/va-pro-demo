@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { api } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function ClientModal({ client, clients, setClients, onClose }) {
   const [formData, setFormData] = useState({
@@ -28,25 +30,30 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
     }
   }, [client]);
 
-  const handleSubmit = (e) => {
+  const { user } = useAuth();
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const newClient = {
-      id: client ? client.id : Date.now(),
+
+    const clientData = {
       ...formData,
       rate: parseFloat(formData.rate) || 0,
       projects: formData.projects.split(",").map(p => p.trim()).filter(Boolean),
-      totalHours: client?.totalHours || 0,
-      lastActivity: client?.lastActivity || "Just now",
+      user_id: user.id
     };
 
-    if (client) {
-      setClients(clients.map(c => c.id === client.id ? newClient : c));
-    } else {
-      setClients([...clients, newClient]);
+    try {
+      if (client) {
+        const updatedClient = await api.updateClient(client.id, clientData);
+        setClients(clients.map(c => c.id === client.id ? updatedClient : c));
+      } else {
+        const createdClient = await api.createClient(clientData);
+        setClients([...clients, createdClient]);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error saving client:", error);
+      alert("Failed to save client to database");
     }
-    
-    onClose();
   };
 
   return (
@@ -255,7 +262,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
 
           <div className="border-t pt-4 space-y-4">
             <h4 className="font-medium text-gray-900">Time Tracking Settings</h4>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -296,7 +303,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
               <div className="text-xs text-blue-600 mb-3">
                 Times will be converted to GMT+8 (Philippine time) for your schedule
               </div>
-              
+
               <div className="space-y-3">
                 {formData.timeSlots.map((slot, index) => (
                   <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
@@ -359,7 +366,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                     </button>
                   </div>
                 ))}
-                
+
                 <button
                   type="button"
                   onClick={() => {

@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Moon, Sun, Shield, Lock, Trash2, Edit2, Check, Download, Upload } from 'lucide-react';
+import { api } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
+import STORAGE_KEYS, { loadFromStorage, clearAllStorage, saveToStorage } from "../utils/localStorage";
 
 export default function ProfileModal({ profile, onSave, onClose, uiSettings, onUpdateUiSettings }) {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('profile');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState('');
   const [formData, setFormData] = useState({
     name: profile?.name || '',
     email: profile?.email || '',
@@ -25,6 +33,116 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
       });
     }
   };
+
+  const handleMigrateData = async () => {
+    if (!window.confirm("This will upload all your local browser data (clients, tasks, time entries) to the Supabase database. Are you sure you want to proceed?")) {
+      return;
+    }
+
+    try {
+      setIsMigrating(true);
+      setMigrationStatus('Reading local storage...');
+
+      const localClients = loadFromStorage(STORAGE_KEYS.CLIENTS, []);
+      const localTasks = loadFromStorage(STORAGE_KEYS.TASKS, []);
+      const localTimeEntries = loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, []);
+
+      // 1. Migrate Clients
+      setMigrationStatus(`Migrating ${localClients.length} clients...`);
+      const clientMap = {}; // old_id -> new_id
+      for (const client of localClients) {
+        const payload = {
+          name: client.name,
+          email: client.email,
+          phone: client.phone,
+          timezone: client.timezone,
+          location: client.location,
+          rate: client.rate,
+          currency: client.currency,
+          billing: client.billing,
+          notes: client.notes,
+          projects: Array.isArray(client.projects) ? client.projects : [],
+          status: client.status,
+          daily_time_limit_min: client.dailyTimeLimitMin,
+          user_id: user.id
+        };
+        const newClient = await api.createClient(payload);
+        clientMap[client.id] = newClient.id;
+      }
+
+      // 2. Migrate Tasks
+      setMigrationStatus(`Migrating ${localTasks.length} tasks...`);
+      const taskMap = {}; // old_id -> new_id
+      for (const task of localTasks) {
+        const payload = {
+          title: task.title,
+          description: task.description,
+          status: task.status,
+          priority: task.priority,
+          client_id: clientMap[task.clientId],
+          due_date: task.dueDate,
+          time_spent: task.timeSpent,
+          recurring: task.recurring,
+          estimated_min: task.estimatedMin,
+          allow_overrun: task.allowOverrun,
+          file_links: task.fileLinks,
+          output_links: task.outputLinks,
+          user_id: user.id
+        };
+        if (payload.client_id) { // Only migrate tasks that have valid clients
+          const newTask = await api.createTask({
+            ...payload,
+            clientId: payload.client_id,
+            dueDate: payload.due_date,
+            timeSpent: payload.time_spent,
+            estimatedMin: payload.estimated_min,
+            allowOverrun: payload.allow_overrun,
+            fileLinks: payload.file_links,
+            outputLinks: payload.output_links,
+            userId: user.id
+          });
+          taskMap[task.id] = newTask.id;
+        }
+      }
+
+      // 3. Migrate Time Entries
+      setMigrationStatus(`Migrating ${localTimeEntries.length} time entries...`);
+      for (const entry of localTimeEntries) {
+        if (taskMap[entry.taskId] && clientMap[entry.clientId]) {
+          await api.createTimeEntry({
+            taskId: taskMap[entry.taskId],
+            clientId: clientMap[entry.clientId],
+            duration: entry.duration,
+            date: entry.date,
+            billable: entry.billable,
+            description: entry.description,
+            userId: user.id
+          });
+        }
+      }
+
+      setMigrationStatus('Migration complete! Refreshing application...');
+      localStorage.removeItem(STORAGE_KEYS.CLIENTS);
+      localStorage.removeItem(STORAGE_KEYS.TASKS);
+      localStorage.removeItem(STORAGE_KEYS.TIME_ENTRIES);
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+
+    } catch (error) {
+      console.error("Migration failed:", error);
+      setMigrationStatus(`Error during migration: ${error.message}`);
+      setIsMigrating(false);
+    }
+  };
+
+  const tabs = [
+    { id: 'profile', label: 'Profile' },
+    { id: 'preferences', label: 'Preferences' },
+    { id: 'security', label: 'Privacy & Security' },
+    { id: 'data', label: 'Data Management' }
+  ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -92,6 +210,51 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
               placeholder="https://example.com/avatar.jpg"
             />
+          </div>
+
+          <div className="pt-6 border-t mt-6">
+            <h4 className="text-sm font-medium text-gray-900 mb-4">Cloud Migration</h4>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h5 className="text-sm font-medium text-blue-900 mb-2">Migrate Local Data to Supabase</h5>
+              <p className="text-sm text-blue-800 mb-4">
+                Move your offline local storage data (clients, tasks, time entries) into the cloud database so you can access it anywhere.
+              </p>
+              <button
+                type="button"
+                onClick={handleMigrateData}
+                disabled={isMigrating}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50"
+              >
+                <Upload className="h-4 w-4" />
+                <span>{isMigrating ? 'Migrating...' : 'Start Migration'}</span>
+              </button>
+              {migrationStatus && (
+                <p className="mt-2 text-xs font-semibold text-blue-700">{migrationStatus}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-6 border-t mt-6">
+            <h4 className="text-sm font-medium text-gray-900 mb-4">Danger Zone</h4>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h5 className="text-sm font-medium text-red-900 mb-2">Clear All Local Data</h5>
+              <p className="text-sm text-red-800 mb-4">
+                This will permanently delete all your local data (clients, tasks, time entries) from your browser's storage. This action cannot be undone.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to clear ALL local data? This action is irreversible.")) {
+                    clearAllStorage();
+                    window.location.reload();
+                  }
+                }}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Clear All Data</span>
+              </button>
+            </div>
           </div>
 
           <div className="pt-2 space-y-3">

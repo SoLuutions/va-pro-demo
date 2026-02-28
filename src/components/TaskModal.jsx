@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, FolderOpen } from "lucide-react";
+import { api } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function TaskModal({ task, tasks, setTasks, timeEntries, setTimeEntries, clients, onClose, templates = [], onSaveTemplate, onApplyTemplate }) {
   if (clients.length === 0) {
@@ -48,45 +50,77 @@ export default function TaskModal({ task, tasks, setTasks, timeEntries, setTimeE
     }
   }, [task]);
 
-  const handleSubmit = (e) => {
+  const { user } = useAuth();
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newTask = {
-      id: task ? task.id : Date.now(),
-      ...formData,
-      clientId: parseInt(formData.clientId),
-      timeSpent: task?.timeSpent || 0,
-      attachments: task?.attachments || [],
-      createdAt: task?.createdAt || new Date().toISOString().split('T')[0],
-    };
+    try {
+      if (taskType === "Completed") {
+        // Handle completed task logging
+        const newTaskData = {
+          title: formData.title,
+          description: formData.description,
+          clientId: parseInt(formData.clientId),
+          priority: formData.priority,
+          dueDate: formData.dueDate,
+          project: formData.project,
+          estimatedMin: formData.estimatedMin,
+          allowOverrun: formData.allowOverrun,
+          fileLinks: formData.fileLinks,
+          outputLinks: formData.outputLinks,
+          status: "Completed",
+          timeSpent: parseFloat(formData.loggedHours) || 0,
+          userId: user.id
+        };
 
-    if (taskType === "Completed") {
-      newTask.status = "Completed";
-      newTask.timeSpent = parseFloat(formData.loggedHours) || 0;
-      newTask.billable = true; // defaulting to true for completed
+        const createdTask = await api.createTask(newTaskData);
+        setTasks((prev) => [createdTask, ...prev]);
 
-      const newEntry = {
-        id: Date.now() + 1,
-        taskId: newTask.id,
-        clientId: newTask.clientId,
-        duration: newTask.timeSpent,
-        date: new Date().toISOString().split('T')[0],
-        billable: true,
-        description: `Manually logged completed task: ${newTask.title}`,
-      };
+        const newEntry = {
+          taskId: createdTask.id,
+          clientId: createdTask.clientId,
+          duration: createdTask.timeSpent,
+          date: new Date().toISOString().split('T')[0],
+          billable: true,
+          description: `Manually logged completed task: ${createdTask.title}`,
+          userId: user.id
+        };
+        const createdEntry = await api.createTimeEntry(newEntry);
 
-      if (setTimeEntries) {
-        setTimeEntries([...(timeEntries || []), newEntry]);
+        if (setTimeEntries) {
+          setTimeEntries((prev) => [createdEntry, ...prev]);
+        }
+      } else {
+        // Handle tracked task creation/update
+        const taskData = {
+          title: formData.title,
+          description: formData.description,
+          clientId: parseInt(formData.clientId),
+          priority: formData.priority,
+          status: formData.status,
+          dueDate: formData.dueDate,
+          recurring: formData.recurring,
+          project: formData.project,
+          estimatedMin: formData.estimatedMin,
+          allowOverrun: formData.allowOverrun,
+          fileLinks: formData.fileLinks,
+          outputLinks: formData.outputLinks,
+          userId: user.id
+        };
+
+        if (task) {
+          const updatedTask = await api.updateTask(task.id, taskData);
+          setTasks(tasks.map(t => t.id === task.id ? updatedTask : t));
+        } else {
+          const createdTask = await api.createTask({ ...taskData, timeSpent: 0 });
+          setTasks((prev) => [createdTask, ...prev]);
+        }
       }
+      onClose();
+    } catch (error) {
+      console.error("Error saving task:", error);
+      alert("Failed to save task to database");
     }
-
-    if (task) {
-      setTasks(tasks.map(t => t.id === task.id ? newTask : t));
-    } else {
-      setTasks([...tasks, newTask]);
-    }
-
-    onClose();
   };
 
   const handleSaveTemplate = () => {

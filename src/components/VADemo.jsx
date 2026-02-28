@@ -21,6 +21,7 @@ import Toast from "./Toast";
 import { canStartTimer, getTaskTimeRemaining, formatTimeRemaining } from "../utils/timeWindow";
 import { notificationsManager } from "../utils/notifications";
 import STORAGE_KEYS, { saveToStorage, loadFromStorage } from "../utils/localStorage";
+import { api } from "../lib/api";
 
 const Dashboard = React.lazy(() => import("./tabs/Dashboard"));
 const Clients = React.lazy(() => import("./tabs/Clients"));
@@ -64,17 +65,10 @@ const VADemo = () => {
     })
   );
 
-  const [clients, setClients] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.CLIENTS, [])
-  );
-
-  const [tasks, setTasks] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.TASKS, [])
-  );
-
-  const [timeEntries, setTimeEntries] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, [])
-  );
+  const [clients, setClients] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [timeEntries, setTimeEntries] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   const [taskTemplates, setTaskTemplates] = useState(() =>
     loadFromStorage(STORAGE_KEYS.TASK_TEMPLATES, [])
@@ -85,16 +79,26 @@ const VADemo = () => {
   );
 
   useEffect(() => {
-    saveToStorage(STORAGE_KEYS.CLIENTS, clients);
-  }, [clients]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.TASKS, tasks);
-  }, [tasks]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.TIME_ENTRIES, timeEntries);
-  }, [timeEntries]);
+    async function loadData() {
+      try {
+        if (!user) return;
+        const [fetchedClients, fetchedTasks, fetchedEntries] = await Promise.all([
+          api.getClients(),
+          api.getTasks(),
+          api.getTimeEntries()
+        ]);
+        setClients(fetchedClients);
+        setTasks(fetchedTasks);
+        setTimeEntries(fetchedEntries);
+      } catch (error) {
+        console.error("Error loading data from Supabase:", error);
+        addToast("Error loading data from server.", "error");
+      } finally {
+        setLoadingData(false);
+      }
+    }
+    loadData();
+  }, [user]);
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.TASK_TEMPLATES, taskTemplates);
@@ -322,7 +326,7 @@ const VADemo = () => {
     }
   };
 
-  const stopTimerAndLog = () => {
+  const stopTimerAndLog = async () => {
     if (!activeTimer) return;
 
     const task = tasks.find((t) => t.id === activeTimer);
@@ -338,7 +342,6 @@ const VADemo = () => {
     const timeInfo = getTaskTimeRemaining(task, timerSeconds);
 
     const newEntry = {
-      id: Date.now(),
       taskId: task.id,
       clientId: task.clientId,
       duration: hours,
@@ -347,24 +350,35 @@ const VADemo = () => {
       description: timeInfo.isOverrun
         ? `Auto-logged (${formatTimeRemaining(timeInfo.overrunSeconds)} overtime): ${task.title}`
         : `Auto-logged: ${task.title}`,
+      userId: user.id
     };
 
-    setTimeEntries((prev) => [...prev, newEntry]);
-    setTasks((prev) => prev.map((t) =>
-      t.id === task.id ? { ...t, timeSpent: +(t.timeSpent + hours).toFixed(2) } : t
-    ));
+    try {
+      const dbEntry = await api.createTimeEntry(newEntry);
+      const updatedTask = await api.updateTask(task.id, {
+        timeSpent: +(task.timeSpent + hours).toFixed(2)
+      });
 
-    setActiveTimer(null);
-    setTimerStartedAt(null);
-    setTimerSeconds(0);
-    setTotalBreakTime(0);
-    setIsOnBreak(false);
-    setShowFocusMode(false);
+      setTimeEntries((prev) => [dbEntry, ...prev]);
+      setTasks((prev) => prev.map((t) =>
+        t.id === task.id ? updatedTask : t
+      ));
 
-    addToast(`Timer stopped. Logged ${hours.toFixed(2)} hours`, 'success');
+      addToast(`Timer stopped. Logged ${hours.toFixed(2)} hours`, 'success');
+    } catch (e) {
+      console.error("Failed to commit timer data via API:", e);
+      addToast("Failed to save entry to database. Resync needed.", 'error');
+    } finally {
+      setActiveTimer(null);
+      setTimerStartedAt(null);
+      setTimerSeconds(0);
+      setTotalBreakTime(0);
+      setIsOnBreak(false);
+      setShowFocusMode(false);
+    }
   };
 
-  const markTaskAsDone = () => {
+  const markTaskAsDone = async () => {
     if (!activeTimer) return;
 
     const task = tasks.find((t) => t.id === activeTimer);
@@ -380,7 +394,6 @@ const VADemo = () => {
     const timeInfo = getTaskTimeRemaining(task, timerSeconds);
 
     const newEntry = {
-      id: Date.now(),
       taskId: task.id,
       clientId: task.clientId,
       duration: hours,
@@ -389,25 +402,33 @@ const VADemo = () => {
       description: timeInfo.isOverrun
         ? `Task completed (${formatTimeRemaining(timeInfo.overrunSeconds)} overtime): ${task.title}`
         : `Task completed: ${task.title}`,
+      userId: user.id
     };
 
-    setTimeEntries((prev) => [...prev, newEntry]);
-    setTasks((prev) => prev.map((t) =>
-      t.id === task.id ? {
-        ...t,
-        timeSpent: +(t.timeSpent + hours).toFixed(2),
+    try {
+      const dbEntry = await api.createTimeEntry(newEntry);
+      const updatedTask = await api.updateTask(task.id, {
+        timeSpent: +(task.timeSpent + hours).toFixed(2),
         status: 'Completed'
-      } : t
-    ));
+      });
 
-    setActiveTimer(null);
-    setTimerStartedAt(null);
-    setTimerSeconds(0);
-    setTotalBreakTime(0);
-    setIsOnBreak(false);
-    setShowFocusMode(false);
+      setTimeEntries((prev) => [dbEntry, ...prev]);
+      setTasks((prev) => prev.map((t) =>
+        t.id === task.id ? updatedTask : t
+      ));
 
-    addToast(`Task completed! Logged ${hours.toFixed(2)} hours`, 'success');
+      addToast(`Task completed! Logged ${hours.toFixed(2)} hours`, 'success');
+    } catch (e) {
+      console.error("Failed to commit completed data via API:", e);
+      addToast("Failed to mark task done in database. Resync needed.", 'error');
+    } finally {
+      setActiveTimer(null);
+      setTimerStartedAt(null);
+      setTimerSeconds(0);
+      setTotalBreakTime(0);
+      setIsOnBreak(false);
+      setShowFocusMode(false);
+    }
   };
 
   const formatTime = (seconds) => {
