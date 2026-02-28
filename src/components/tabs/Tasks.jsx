@@ -14,6 +14,7 @@ export default function Tasks({
   getClientName,
   setShowNewTaskModal,
   setTasks,
+  setTimeEntries,
   uiSettings,
 }) {
   const [searchText, setSearchText] = useState("");
@@ -24,7 +25,7 @@ export default function Tasks({
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const matchesSearch = task.title.toLowerCase().includes(searchText.toLowerCase()) ||
-                           task.description.toLowerCase().includes(searchText.toLowerCase());
+        task.description.toLowerCase().includes(searchText.toLowerCase());
       const matchesStatus = statusFilter === "All Status" || task.status === statusFilter;
       const matchesClient = clientFilter === "All Clients" || getClientName(task.clientId) === clientFilter;
       return matchesSearch && matchesStatus && matchesClient;
@@ -37,14 +38,14 @@ export default function Tasks({
     const endOfMonth = now.endOf('month');
     const startDate = startOfMonth.startOf('week');
     const endDate = endOfMonth.endOf('week');
-    
+
     const weeks = [];
     let currentDate = startDate;
-    
+
     while (currentDate <= endDate) {
       const week = [];
       for (let i = 0; i < 7; i++) {
-        const tasksForDay = filteredTasks.filter(task => 
+        const tasksForDay = filteredTasks.filter(task =>
           task.dueDate === currentDate.toISODate()
         );
         week.push({
@@ -56,7 +57,7 @@ export default function Tasks({
       }
       weeks.push(week);
     }
-    
+
     return weeks;
   };
 
@@ -70,22 +71,20 @@ export default function Tasks({
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1 rounded-md flex items-center space-x-1 text-sm font-medium transition-colors ${
-                viewMode === 'list' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
+              className={`px-3 py-1 rounded-md flex items-center space-x-1 text-sm font-medium transition-colors ${viewMode === 'list'
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <List className="h-4 w-4" />
               <span>List</span>
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={`px-3 py-1 rounded-md flex items-center space-x-1 text-sm font-medium transition-colors ${
-                viewMode === 'calendar' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
+              className={`px-3 py-1 rounded-md flex items-center space-x-1 text-sm font-medium transition-colors ${viewMode === 'calendar'
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <Grid className="h-4 w-4" />
               <span>Calendar</span>
@@ -114,7 +113,7 @@ export default function Tasks({
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            <select 
+            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -125,7 +124,7 @@ export default function Tasks({
               <option>Review</option>
               <option>Completed</option>
             </select>
-            <select 
+            <select
               value={clientFilter}
               onChange={(e) => setClientFilter(e.target.value)}
               className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -156,17 +155,14 @@ export default function Tasks({
                   {week.map((day, dayIndex) => (
                     <div
                       key={dayIndex}
-                      className={`min-h-32 border rounded-lg p-2 ${
-                        day.isCurrentMonth ? 'bg-white' : 'bg-gray-50'
-                      } ${
-                        day.date.toISODate() === DateTime.now().setZone('Asia/Manila').toISODate()
+                      className={`min-h-32 border rounded-lg p-2 ${day.isCurrentMonth ? 'bg-white' : 'bg-gray-50'
+                        } ${day.date.toISODate() === DateTime.now().setZone('Asia/Manila').toISODate()
                           ? 'ring-2 ring-blue-500'
                           : ''
-                      }`}
+                        }`}
                     >
-                      <div className={`text-sm font-semibold mb-2 ${
-                        day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                      }`}>
+                      <div className={`text-sm font-semibold mb-2 ${day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                        }`}>
                         {day.date.day}
                       </div>
                       <div className="space-y-1">
@@ -179,12 +175,11 @@ export default function Tasks({
                                 setSelectedTask(task);
                                 setShowNewTaskModal(true);
                               }}
-                              className={`w-full text-left px-2 py-1 rounded text-xs hover:opacity-80 transition-opacity ${
-                                task.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                                task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                                task.status === 'Review' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}
+                              className={`w-full text-left px-2 py-1 rounded text-xs hover:opacity-80 transition-opacity ${task.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                                  task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                                    task.status === 'Review' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-gray-100 text-gray-800'
+                                }`}
                             >
                               <div className="font-medium truncate">{task.title}</div>
                               <div className="text-xs opacity-75 truncate">{client?.name}</div>
@@ -205,129 +200,133 @@ export default function Tasks({
           </div>
         ) : (
           <div className="divide-y">
-          {filteredTasks.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              No tasks found matching your filters
-            </div>
-          ) : (
-            filteredTasks.map((task) => {
-              const client = clients.find((c) => c.id === task.clientId);
-              return (
-              <div key={task.id} className="p-6 hover:bg-gray-50">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-gray-900">{task.title}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                        {task.status}
-                      </span>
-                      <span className={`text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 mb-3">{task.description}</p>
-                    
-                    {(task.fileLinks || task.outputLinks) && (
-                      <div className="mb-3 space-y-2">
-                        {task.fileLinks && (
-                          <div className="flex items-start space-x-2">
-                            <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div className="flex flex-wrap gap-2">
-                              {task.fileLinks.split('\n').filter(link => link.trim()).map((link, i) => (
-                                <a
-                                  key={i}
-                                  href={link.trim()}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
-                                >
-                                  <span>File {i + 1}</span>
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {task.outputLinks && (
-                          <div className="flex items-start space-x-2">
-                            <ExternalLink className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            <div className="flex flex-wrap gap-2">
-                              {task.outputLinks.split('\n').filter(link => link.trim()).map((link, i) => (
-                                <a
-                                  key={i}
-                                  href={link.trim()}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm text-green-600 hover:text-green-800 flex items-center space-x-1"
-                                >
-                                  <span>Output {i + 1}</span>
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center space-x-6 text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <Building2 className="h-4 w-4 mr-1" />
-                        {client?.name}
-                      </span>
-                      <span className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        Due: {task.dueDate}
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {task.timeSpent}h logged
-                      </span>
-                      {task.recurring !== "None" && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                          {task.recurring}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 ml-4">
-                    {task.status !== "Completed" && (
-                      <button
-                        onClick={() => setActiveTimer(activeTimer === task.id ? null : task.id)}
-                        className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center space-x-1 ${
-                          activeTimer === task.id
-                            ? "bg-red-100 text-red-700 hover:bg-red-200"
-                            : "bg-green-100 text-green-700 hover:bg-green-200"
-                        }`}
-                      >
-                        {activeTimer === task.id ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                        <span>{activeTimer === task.id ? "Pause" : "Start"}</span>
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        setSelectedTask(task);
-                        setShowNewTaskModal(true);
-                      }}
-                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200"
-                    >
-                      Edit
-                    </button>
-                  <button
-                    onClick={() => setTasks(prev => prev.filter(t => t.id !== task.id))}
-                    className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 flex items-center space-x-1"
-                    title="Delete task"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                    <span>Delete</span>
-                  </button>
-                  </div>
-                </div>
+            {filteredTasks.length === 0 ? (
+              <div className="p-12 text-center text-gray-500">
+                No tasks found matching your filters
               </div>
-              );
-            })
-          )}
-        </div>
+            ) : (
+              filteredTasks.map((task) => {
+                const client = clients.find((c) => c.id === task.clientId);
+                return (
+                  <div key={task.id} className="p-6 hover:bg-gray-50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-semibold text-gray-900">{task.title}</h3>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                            {task.status}
+                          </span>
+                          <span className={`text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                            {task.priority}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 mb-3">{task.description}</p>
+
+                        {(task.fileLinks || task.outputLinks) && (
+                          <div className="mb-3 space-y-2">
+                            {task.fileLinks && (
+                              <div className="flex items-start space-x-2">
+                                <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex flex-wrap gap-2">
+                                  {task.fileLinks.split('\n').filter(link => link.trim()).map((link, i) => (
+                                    <a
+                                      key={i}
+                                      href={link.trim()}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                                    >
+                                      <span>File {i + 1}</span>
+                                      <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {task.outputLinks && (
+                              <div className="flex items-start space-x-2">
+                                <ExternalLink className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex flex-wrap gap-2">
+                                  {task.outputLinks.split('\n').filter(link => link.trim()).map((link, i) => (
+                                    <a
+                                      key={i}
+                                      href={link.trim()}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm text-green-600 hover:text-green-800 flex items-center space-x-1"
+                                    >
+                                      <span>Output {i + 1}</span>
+                                      <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center space-x-6 text-sm text-gray-500">
+                          <span className="flex items-center">
+                            <Building2 className="h-4 w-4 mr-1" />
+                            {client?.name}
+                          </span>
+                          <span className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            Due: {task.dueDate}
+                          </span>
+                          <span className="flex items-center">
+                            <Clock className="h-4 w-4 mr-1" />
+                            {task.timeSpent}h logged
+                          </span>
+                          {task.recurring !== "None" && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                              {task.recurring}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        {task.status !== "Completed" && (
+                          <button
+                            onClick={() => setActiveTimer(activeTimer === task.id ? null : task.id)}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center space-x-1 ${activeTimer === task.id
+                                ? "bg-red-100 text-red-700 hover:bg-red-200"
+                                : "bg-green-100 text-green-700 hover:bg-green-200"
+                              }`}
+                          >
+                            {activeTimer === task.id ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                            <span>{activeTimer === task.id ? "Pause" : "Start"}</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedTask(task);
+                            setShowNewTaskModal(true);
+                          }}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTasks(prev => prev.filter(t => t.id !== task.id));
+                            if (setTimeEntries) {
+                              setTimeEntries(prev => prev.filter(entry => entry.taskId !== task.id));
+                            }
+                          }}
+                          className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 flex items-center space-x-1"
+                          title="Delete task"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         )}
       </div>
     </div>

@@ -46,7 +46,7 @@ const VADemo = () => {
       ndaMode: false,
     })
   );
-  
+
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
@@ -55,7 +55,7 @@ const VADemo = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
 
-  const [userProfile, setUserProfile] = useState(() => 
+  const [userProfile, setUserProfile] = useState(() =>
     loadFromStorage(STORAGE_KEYS.USER_PROFILE, {
       name: "",
       email: "",
@@ -64,15 +64,15 @@ const VADemo = () => {
     })
   );
 
-  const [clients, setClients] = useState(() => 
+  const [clients, setClients] = useState(() =>
     loadFromStorage(STORAGE_KEYS.CLIENTS, [])
   );
 
-  const [tasks, setTasks] = useState(() => 
+  const [tasks, setTasks] = useState(() =>
     loadFromStorage(STORAGE_KEYS.TASKS, [])
   );
 
-  const [timeEntries, setTimeEntries] = useState(() => 
+  const [timeEntries, setTimeEntries] = useState(() =>
     loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, [])
   );
 
@@ -80,7 +80,7 @@ const VADemo = () => {
     loadFromStorage(STORAGE_KEYS.TASK_TEMPLATES, [])
   );
 
-  const [quickLinks, setQuickLinks] = useState(() => 
+  const [quickLinks, setQuickLinks] = useState(() =>
     loadFromStorage(STORAGE_KEYS.QUICK_LINKS, [])
   );
 
@@ -160,15 +160,15 @@ const VADemo = () => {
       interval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000) - totalBreakTime;
         setTimerSeconds(Math.max(0, elapsed));
-        
+
         const task = tasks.find(t => t.id === activeTimer);
         const client = clients.find(c => c.id === task?.clientId);
-        
+
         if (client && client.dailyTimeLimitMin) {
           const hoursElapsed = elapsed / 3600;
           const dailyLimit = getClientDailyTimeLeft(client, timeEntries);
           const projectedMinutes = dailyLimit.minutesUsed + (hoursElapsed * 60);
-          
+
           if (projectedMinutes >= client.dailyTimeLimitMin && !hasNotifiedDailyLimit) {
             hasNotifiedDailyLimit = true;
             stopTimerAndLog();
@@ -179,19 +179,19 @@ const VADemo = () => {
             );
           }
         }
-        
+
         if (task && task.estimatedMin) {
           const timeInfo = getTaskTimeRemaining(task, elapsed);
           if (timeInfo.remainingSeconds === 0 && !timeInfo.isOverrun && !hasNotifiedTaskLimit) {
             hasNotifiedTaskLimit = true;
             addToast('Task time limit reached!', 'warning');
             const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHG2m98Om');
-            audio.play().catch(() => {});
+            audio.play().catch(() => { });
             notificationsManager.showNotification(
               'Time limit reached',
               { body: `"${task.title}" has reached its estimated time.`, type: 'task-complete' }
             );
-            
+
             if (task.allowOverrun === false) {
               stopTimerAndLog();
               addToast('Timer auto-stopped (overrun not allowed)', 'info');
@@ -259,16 +259,16 @@ const VADemo = () => {
 
     if (!permission.allowed) {
       addToast(permission.reason, 'error');
-      
+
       if (permission.nextSlotStart && client) {
         const nextSlotDate = new Date(permission.nextSlotStart);
-        const formattedTime = nextSlotDate.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
+        const formattedTime = nextSlotDate.toLocaleTimeString('en-US', {
+          hour: 'numeric',
           minute: '2-digit',
           timeZone: 'Asia/Manila'
         });
         addToast(`Next available slot: ${formattedTime}`, 'info');
-        
+
         notificationsManager.scheduleClientSlotNotification(
           client,
           permission.nextSlotStart,
@@ -299,13 +299,13 @@ const VADemo = () => {
       setTimerSeconds(0);
       setTotalBreakTime(0);
       setIsOnBreak(false);
-      
+
       if (task.status !== 'In Progress' && task.status !== 'Completed') {
-        setTasks(prev => prev.map(t => 
+        setTasks(prev => prev.map(t =>
           t.id === taskId ? { ...t, status: 'In Progress' } : t
         ));
       }
-      
+
       addToast(`Timer started for: ${task.title}`, 'success');
     }
   };
@@ -324,7 +324,7 @@ const VADemo = () => {
 
   const stopTimerAndLog = () => {
     if (!activeTimer) return;
-    
+
     const task = tasks.find((t) => t.id === activeTimer);
     if (!task) {
       setActiveTimer(null);
@@ -336,7 +336,7 @@ const VADemo = () => {
 
     const hours = +(timerSeconds / 3600).toFixed(2);
     const timeInfo = getTaskTimeRemaining(task, timerSeconds);
-    
+
     const newEntry = {
       id: Date.now(),
       taskId: task.id,
@@ -344,29 +344,29 @@ const VADemo = () => {
       duration: hours,
       date: DateTime.now().setZone('Asia/Manila').toISODate(),
       billable: true,
-      description: timeInfo.isOverrun 
+      description: timeInfo.isOverrun
         ? `Auto-logged (${formatTimeRemaining(timeInfo.overrunSeconds)} overtime): ${task.title}`
         : `Auto-logged: ${task.title}`,
     };
 
     setTimeEntries((prev) => [...prev, newEntry]);
-    setTasks((prev) => prev.map((t) => 
+    setTasks((prev) => prev.map((t) =>
       t.id === task.id ? { ...t, timeSpent: +(t.timeSpent + hours).toFixed(2) } : t
     ));
-    
+
     setActiveTimer(null);
     setTimerStartedAt(null);
     setTimerSeconds(0);
     setTotalBreakTime(0);
     setIsOnBreak(false);
     setShowFocusMode(false);
-    
+
     addToast(`Timer stopped. Logged ${hours.toFixed(2)} hours`, 'success');
   };
 
   const markTaskAsDone = () => {
     if (!activeTimer) return;
-    
+
     const task = tasks.find((t) => t.id === activeTimer);
     if (!task) {
       setActiveTimer(null);
@@ -378,7 +378,7 @@ const VADemo = () => {
 
     const hours = +(timerSeconds / 3600).toFixed(2);
     const timeInfo = getTaskTimeRemaining(task, timerSeconds);
-    
+
     const newEntry = {
       id: Date.now(),
       taskId: task.id,
@@ -386,27 +386,27 @@ const VADemo = () => {
       duration: hours,
       date: DateTime.now().setZone('Asia/Manila').toISODate(),
       billable: true,
-      description: timeInfo.isOverrun 
+      description: timeInfo.isOverrun
         ? `Task completed (${formatTimeRemaining(timeInfo.overrunSeconds)} overtime): ${task.title}`
         : `Task completed: ${task.title}`,
     };
 
     setTimeEntries((prev) => [...prev, newEntry]);
-    setTasks((prev) => prev.map((t) => 
-      t.id === task.id ? { 
-        ...t, 
+    setTasks((prev) => prev.map((t) =>
+      t.id === task.id ? {
+        ...t,
         timeSpent: +(t.timeSpent + hours).toFixed(2),
         status: 'Completed'
       } : t
     ));
-    
+
     setActiveTimer(null);
     setTimerStartedAt(null);
     setTimerSeconds(0);
     setTotalBreakTime(0);
     setIsOnBreak(false);
     setShowFocusMode(false);
-    
+
     addToast(`Task completed! Logged ${hours.toFixed(2)} hours`, 'success');
   };
 
@@ -452,7 +452,7 @@ const VADemo = () => {
   const shared = {
     clients, tasks, timeEntries,
     setClients, setTasks, setTimeEntries,
-    activeTimer, setActiveTimer: handleStartTimer, 
+    activeTimer, setActiveTimer: handleStartTimer,
     timerSeconds, setTimerSeconds,
     formatTime, getStatusColor, getPriorityColor, getClientName, formatCurrency,
     stopTimerAndLog, markTaskAsDone, selectedClient, setSelectedClient, selectedTask, setSelectedTask,
@@ -488,11 +488,10 @@ const VADemo = () => {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        activeTab === tab.id
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
                           ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                      }`}
+                          : 'text-gray-600 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
                     >
                       <Icon className="h-4 w-4" />
                       <span className="hidden sm:inline">{tab.name}</span>
@@ -509,14 +508,14 @@ const VADemo = () => {
               >
                 {uiSettings.darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
-              <div 
+              <div
                 className="text-right cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded"
                 onClick={() => setShowProfileModal(true)}
               >
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{uiSettings.ndaMode ? 'User' : userProfile.name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">PH • {userProfile.timezone}</p>
               </div>
-              <div 
+              <div
                 className="h-8 w-8 rounded-full bg-blue-200 dark:bg-blue-700 cursor-pointer hover:bg-blue-300 dark:hover:bg-blue-600"
                 onClick={() => setShowProfileModal(true)}
               />
@@ -614,10 +613,12 @@ const VADemo = () => {
           task={selectedTask}
           tasks={tasks}
           setTasks={setTasks}
+          timeEntries={timeEntries}
+          setTimeEntries={setTimeEntries}
           clients={clients}
           templates={taskTemplates}
           onSaveTemplate={(tpl) => setTaskTemplates(prev => [tpl, ...prev])}
-          onApplyTemplate={() => {}}
+          onApplyTemplate={() => { }}
           onClose={() => {
             setShowNewTaskModal(false);
             setSelectedTask(null);

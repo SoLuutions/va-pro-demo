@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, FolderOpen } from "lucide-react";
 
-export default function TaskModal({ task, tasks, setTasks, clients, onClose, templates = [], onSaveTemplate, onApplyTemplate }) {
+export default function TaskModal({ task, tasks, setTasks, timeEntries, setTimeEntries, clients, onClose, templates = [], onSaveTemplate, onApplyTemplate }) {
   if (clients.length === 0) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -29,8 +29,11 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
     estimatedMin: "",
     allowOverrun: true,
     fileLinks: "",
-    outputLinks: ""
+    outputLinks: "",
+    loggedHours: ""
   });
+
+  const [taskType, setTaskType] = useState("Tracked");
 
   useEffect(() => {
     if (task) {
@@ -47,7 +50,7 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const newTask = {
       id: task ? task.id : Date.now(),
       ...formData,
@@ -57,12 +60,32 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
       createdAt: task?.createdAt || new Date().toISOString().split('T')[0],
     };
 
+    if (taskType === "Completed") {
+      newTask.status = "Completed";
+      newTask.timeSpent = parseFloat(formData.loggedHours) || 0;
+      newTask.billable = true; // defaulting to true for completed
+
+      const newEntry = {
+        id: Date.now() + 1,
+        taskId: newTask.id,
+        clientId: newTask.clientId,
+        duration: newTask.timeSpent,
+        date: new Date().toISOString().split('T')[0],
+        billable: true,
+        description: `Manually logged completed task: ${newTask.title}`,
+      };
+
+      if (setTimeEntries) {
+        setTimeEntries([...(timeEntries || []), newEntry]);
+      }
+    }
+
     if (task) {
       setTasks(tasks.map(t => t.id === task.id ? newTask : t));
     } else {
       setTasks([...tasks, newTask]);
     }
-    
+
     onClose();
   };
 
@@ -98,6 +121,25 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {!task && (
+            <div className="flex space-x-4 mb-4">
+              <button
+                type="button"
+                onClick={() => setTaskType("Tracked")}
+                className={`py-2 px-4 rounded-lg flex-1 text-sm font-medium border ${taskType === 'Tracked' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-600'}`}
+              >
+                Track Time Task
+              </button>
+              <button
+                type="button"
+                onClick={() => setTaskType("Completed")}
+                className={`py-2 px-4 rounded-lg flex-1 text-sm font-medium border ${taskType === 'Completed' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-600'}`}
+              >
+                Log Completed Task
+              </button>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Task Title *</label>
             <input
@@ -149,35 +191,39 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
+            {taskType === "Tracked" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="To Do">To Do</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Review">Review</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="To Do">To Do</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Review">Review</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Due Date *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Due Date / Completion Date *</label>
               <input
                 type="date"
                 required
@@ -204,64 +250,85 @@ export default function TaskModal({ task, tasks, setTasks, clients, onClose, tem
 
           <div className="border-t pt-4 space-y-4">
             <h4 className="font-medium text-gray-900">Task Settings</h4>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Estimated Time (minutes)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.estimatedMin || ""}
-                  onChange={(e) => setFormData({ ...formData, estimatedMin: e.target.value ? parseInt(e.target.value) : null })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="120 (2 hours)"
-                />
-                <p className="text-xs text-gray-500 mt-1">Timer will count down from this</p>
-              </div>
+              {taskType === "Tracked" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Estimated Time (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.estimatedMin || ""}
+                      onChange={(e) => setFormData({ ...formData, estimatedMin: e.target.value ? parseInt(e.target.value) : null })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="120 (2 hours)"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Timer will count down from this</p>
+                  </div>
 
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="billable"
-                    checked={formData.billable}
-                    onChange={(e) => setFormData({ ...formData, billable: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="billable" className="ml-2 block text-sm text-gray-700">
-                    Billable task
-                  </label>
-                </div>
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="billable"
+                        checked={formData.billable}
+                        onChange={(e) => setFormData({ ...formData, billable: e.target.checked })}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="billable" className="ml-2 block text-sm text-gray-700">
+                        Billable task
+                      </label>
+                    </div>
 
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="allowOverrun"
-                    checked={formData.allowOverrun !== false}
-                    onChange={(e) => setFormData({ ...formData, allowOverrun: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="allowOverrun" className="ml-2 block text-sm text-gray-700">
-                    Allow continuing past estimated time
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="allowOverrun"
+                        checked={formData.allowOverrun !== false}
+                        onChange={(e) => setFormData({ ...formData, allowOverrun: e.target.checked })}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="allowOverrun" className="ml-2 block text-sm text-gray-700">
+                        Allow continuing past estimated time
+                      </label>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Logged Time (hours) *
                   </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    required
+                    value={formData.loggedHours || ""}
+                    onChange={(e) => setFormData({ ...formData, loggedHours: e.target.value })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="2.5"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Total time spent on this completed task</p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
           <div className="border-t pt-4 space-y-4">
             <h4 className="font-medium text-gray-900">Files & Output</h4>
-            
+
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="block text-sm font-medium text-gray-700">
                   File Links
                 </label>
-                <a 
-                  href="https://drive.google.com" 
-                  target="_blank" 
+                <a
+                  href="https://drive.google.com"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
                 >
