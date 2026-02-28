@@ -8,7 +8,7 @@ export default function Register({ onRegister, onSwitchToLogin }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -27,9 +27,12 @@ export default function Register({ onRegister, onSwitchToLogin }) {
       return;
     }
 
-    const result = onRegister(name, email, password);
+    const result = await onRegister(name, email, password);
     if (!result.success) {
       setError(result.error);
+    } else {
+      // Show success message if registration worked but requires email confirmation
+      setError('Registration successful! Check your email to confirm your account, or try logging in if email confirmation is disabled.');
     }
   };
 
@@ -41,7 +44,7 @@ export default function Register({ onRegister, onSwitchToLogin }) {
             <UserPlus className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
 
-          
+
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">VA Pro</h1>
           <p className="text-gray-600 dark:text-gray-300">Create your account</p>
         </div>

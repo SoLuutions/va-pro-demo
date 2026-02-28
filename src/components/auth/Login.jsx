@@ -6,7 +6,7 @@ export default function Login({ onLogin, onSwitchToRegister }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -15,7 +15,7 @@ export default function Login({ onLogin, onSwitchToRegister }) {
       return;
     }
 
-    const result = onLogin(email, password);
+    const result = await onLogin(email, password);
     if (!result.success) {
       setError(result.error);
     }
