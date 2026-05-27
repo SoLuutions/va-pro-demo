@@ -18,7 +18,7 @@ import ProfileModal from "./ProfileModal";
 import FocusMode from "./FocusMode";
 import CommandPalette from "./CommandPalette";
 import Toast from "./Toast";
-import { canStartTimer, getTaskTimeRemaining, formatTimeRemaining } from "../utils/timeWindow";
+import { canStartTimer, getTaskTimeRemaining, formatTimeRemaining, getClientDailyTimeLeft } from "../utils/timeWindow";
 import { notificationsManager } from "../utils/notifications";
 import STORAGE_KEYS, { saveToStorage, loadFromStorage } from "../utils/localStorage";
 
@@ -46,6 +46,11 @@ const VADemo = () => {
       ndaMode: false,
     })
   );
+
+  // Refs so the timer interval always sees fresh data without recreating every tick
+  const tasksRef = React.useRef([]);
+  const clientsRef = React.useRef([]);
+  const timeEntriesRef = React.useRef([]);
 
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -86,14 +91,17 @@ const VADemo = () => {
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.CLIENTS, clients);
+    clientsRef.current = clients;
   }, [clients]);
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.TASKS, tasks);
+    tasksRef.current = tasks;
   }, [tasks]);
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.TIME_ENTRIES, timeEntries);
+    timeEntriesRef.current = timeEntries;
   }, [timeEntries]);
 
   useEffect(() => {
@@ -153,64 +161,69 @@ const VADemo = () => {
   }, [activeTimer, timerStartedAt, totalBreakTime]);
 
   useEffect(() => {
-    let interval = null;
+    if (!activeTimer || !timerStartedAt || isOnBreak) return;
+
     let hasNotifiedTaskLimit = false;
     let hasNotifiedDailyLimit = false;
-    if (activeTimer && timerStartedAt && !isOnBreak) {
-      interval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000) - totalBreakTime;
-        setTimerSeconds(Math.max(0, elapsed));
 
-        const task = tasks.find(t => t.id === activeTimer);
-        const client = clients.find(c => c.id === task?.clientId);
+    const interval = setInterval(() => {
+      // Use refs so interval stays stable without being recreated on every state change
+      const currentTasks = tasksRef.current;
+      const currentClients = clientsRef.current;
+      const currentEntries = timeEntriesRef.current;
 
-        if (client && client.dailyTimeLimitMin) {
-          const hoursElapsed = elapsed / 3600;
-          const dailyLimit = getClientDailyTimeLeft(client, timeEntries);
-          const projectedMinutes = dailyLimit.minutesUsed + (hoursElapsed * 60);
+      const elapsed = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000) - totalBreakTime;
+      setTimerSeconds(Math.max(0, elapsed));
 
-          if (projectedMinutes >= client.dailyTimeLimitMin && !hasNotifiedDailyLimit) {
-            hasNotifiedDailyLimit = true;
+      const task = currentTasks.find(t => t.id === activeTimer);
+      const client = currentClients.find(c => c.id === task?.clientId);
+
+      if (client && client.dailyTimeLimitMin) {
+        const hoursElapsed = elapsed / 3600;
+        const dailyLimit = getClientDailyTimeLeft(client, currentEntries);
+        const projectedMinutes = dailyLimit.minutesUsed + (hoursElapsed * 60);
+        if (projectedMinutes >= client.dailyTimeLimitMin && !hasNotifiedDailyLimit) {
+          hasNotifiedDailyLimit = true;
+          stopTimerAndLog();
+          addToast(`Daily time limit reached for ${client.name}`, 'warning');
+          notificationsManager.showNotification(
+            'Daily limit reached',
+            { body: `You've reached the daily time limit for ${client.name}`, type: 'warning' }
+          );
+        }
+      }
+
+      if (task && task.estimatedMin) {
+        const timeInfo = getTaskTimeRemaining(task, elapsed);
+        if (timeInfo.remainingSeconds === 0 && !timeInfo.isOverrun && !hasNotifiedTaskLimit) {
+          hasNotifiedTaskLimit = true;
+          addToast('Task time limit reached!', 'warning');
+          const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHG2m98Om');
+          audio.play().catch(() => {});
+          notificationsManager.showNotification(
+            'Time limit reached',
+            { body: `"${task.title}" has reached its estimated time.`, type: 'task-complete' }
+          );
+          if (task.allowOverrun === false) {
             stopTimerAndLog();
-            addToast(`Daily time limit reached for ${client.name}`, 'warning');
-            notificationsManager.showNotification(
-              'Daily limit reached',
-              { body: `You've reached the daily time limit for ${client.name}`, type: 'warning' }
-            );
+            addToast('Timer auto-stopped (overrun not allowed)', 'info');
           }
         }
+      }
+    }, 1000);
 
-        if (task && task.estimatedMin) {
-          const timeInfo = getTaskTimeRemaining(task, elapsed);
-          if (timeInfo.remainingSeconds === 0 && !timeInfo.isOverrun && !hasNotifiedTaskLimit) {
-            hasNotifiedTaskLimit = true;
-            addToast('Task time limit reached!', 'warning');
-            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHG2m98Om');
-            audio.play().catch(() => { });
-            notificationsManager.showNotification(
-              'Time limit reached',
-              { body: `"${task.title}" has reached its estimated time.`, type: 'task-complete' }
-            );
-
-            if (task.allowOverrun === false) {
-              stopTimerAndLog();
-              addToast('Timer auto-stopped (overrun not allowed)', 'info');
-            }
-          }
-        }
-      }, 1000);
-    } else if (isOnBreak && breakStartedAt) {
-      interval = setInterval(() => {
-        const breakElapsed = Math.floor((Date.now() - new Date(breakStartedAt).getTime()) / 1000);
-        setTotalBreakTime(prev => prev + 1);
-      }, 1000);
-    }
     return () => clearInterval(interval);
-  }, [activeTimer, timerStartedAt, isOnBreak, breakStartedAt, totalBreakTime, tasks, clients, timeEntries]);
+    // Intentionally omit tasks/clients/timeEntries — accessed via stable refs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTimer, timerStartedAt, isOnBreak, totalBreakTime]);
 
   useEffect(() => {
     notificationsManager.requestPermission();
+    return () => notificationsManager.clearAll();
+  }, []);
 
+  useEffect(() => {
+    // Re-register whenever activeTimer or showFocusMode changes so activeTask is fresh
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -224,8 +237,9 @@ const VADemo = () => {
       }
       if (e.key === ' ' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        if (activeTask) {
-          handleStartTimer(activeTask.id);
+        const currentActiveTask = tasksRef.current.find(t => t.id === activeTimer);
+        if (currentActiveTask) {
+          handleStartTimer(currentActiveTask.id);
         }
         return;
       }
@@ -235,11 +249,8 @@ const VADemo = () => {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      notificationsManager.clearAll();
-    };
-  }, [showFocusMode]);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showFocusMode, activeTimer]);
 
   const addToast = (message, type = 'info') => {
     const toast = { id: Date.now(), message, type };
@@ -325,17 +336,24 @@ const VADemo = () => {
   const stopTimerAndLog = () => {
     if (!activeTimer) return;
 
-    const task = tasks.find((t) => t.id === activeTimer);
+    const task = tasksRef.current.find((t) => t.id === activeTimer);
     if (!task) {
       setActiveTimer(null);
       setTimerStartedAt(null);
       setTimerSeconds(0);
       setTotalBreakTime(0);
+      setIsOnBreak(false);
       return;
     }
 
-    const hours = +(timerSeconds / 3600).toFixed(2);
-    const timeInfo = getTaskTimeRemaining(task, timerSeconds);
+    // Account for any break still in progress
+    const currentBreakExtra = isOnBreak && breakStartedAt
+      ? Math.floor((Date.now() - new Date(breakStartedAt).getTime()) / 1000)
+      : 0;
+    const effectiveBreakTime = totalBreakTime + currentBreakExtra;
+    const elapsed = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000) - effectiveBreakTime;
+    const hours = +(Math.max(0, elapsed) / 3600).toFixed(2);
+    const timeInfo = getTaskTimeRemaining(task, elapsed);
 
     const newEntry = {
       id: Date.now(),
@@ -359,6 +377,7 @@ const VADemo = () => {
     setTimerSeconds(0);
     setTotalBreakTime(0);
     setIsOnBreak(false);
+    setBreakStartedAt(null);
     setShowFocusMode(false);
 
     addToast(`Timer stopped. Logged ${hours.toFixed(2)} hours`, 'success');
@@ -367,17 +386,23 @@ const VADemo = () => {
   const markTaskAsDone = () => {
     if (!activeTimer) return;
 
-    const task = tasks.find((t) => t.id === activeTimer);
+    const task = tasksRef.current.find((t) => t.id === activeTimer);
     if (!task) {
       setActiveTimer(null);
       setTimerStartedAt(null);
       setTimerSeconds(0);
       setTotalBreakTime(0);
+      setIsOnBreak(false);
       return;
     }
 
-    const hours = +(timerSeconds / 3600).toFixed(2);
-    const timeInfo = getTaskTimeRemaining(task, timerSeconds);
+    const currentBreakExtra = isOnBreak && breakStartedAt
+      ? Math.floor((Date.now() - new Date(breakStartedAt).getTime()) / 1000)
+      : 0;
+    const effectiveBreakTime = totalBreakTime + currentBreakExtra;
+    const elapsed = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000) - effectiveBreakTime;
+    const hours = +(Math.max(0, elapsed) / 3600).toFixed(2);
+    const timeInfo = getTaskTimeRemaining(task, elapsed);
 
     const newEntry = {
       id: Date.now(),
@@ -405,6 +430,7 @@ const VADemo = () => {
     setTimerSeconds(0);
     setTotalBreakTime(0);
     setIsOnBreak(false);
+    setBreakStartedAt(null);
     setShowFocusMode(false);
 
     addToast(`Task completed! Logged ${hours.toFixed(2)} hours`, 'success');
@@ -516,9 +542,18 @@ const VADemo = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">PH • {userProfile.timezone}</p>
               </div>
               <div
-                className="h-8 w-8 rounded-full bg-blue-200 dark:bg-blue-700 cursor-pointer hover:bg-blue-300 dark:hover:bg-blue-600"
+                className="h-8 w-8 rounded-full overflow-hidden bg-blue-200 dark:bg-blue-700 cursor-pointer hover:bg-blue-300 dark:hover:bg-blue-600 flex items-center justify-center"
                 onClick={() => setShowProfileModal(true)}
-              />
+              >
+                {userProfile.avatarUrl ? (
+                  <img
+                    src={userProfile.avatarUrl}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                ) : null}
+              </div>
               <button
                 onClick={logout}
                 className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
@@ -586,7 +621,11 @@ const VADemo = () => {
       )}
 
       <main className={`max-w-7xl mx-auto p-4 sm:p-6 lg:p-8`}>
-        <React.Suspense fallback={<div className="p-6 bg-white border rounded-lg">Loading…</div>}>
+        <React.Suspense fallback={
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent" />
+          </div>
+        }>
           {activeTab === "dashboard" && <Dashboard {...shared} />}
           {activeTab === "clients" && <Clients {...shared} tasks={tasks} timeEntries={timeEntries} uiSettings={uiSettings} />}
           {activeTab === "tasks" && <Tasks {...shared} setTasks={setTasks} uiSettings={uiSettings} />}

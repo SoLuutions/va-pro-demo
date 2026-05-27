@@ -5,8 +5,9 @@ export default function Login({ onLogin, onSwitchToRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -15,9 +16,14 @@ export default function Login({ onLogin, onSwitchToRegister }) {
       return;
     }
 
-    const result = onLogin(email, password);
-    if (!result.success) {
-      setError(result.error);
+    setLoading(true);
+    try {
+      const result = await onLogin(email, password);
+      if (!result.success) {
+        setError(result.error);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,9 +74,10 @@ export default function Login({ onLogin, onSwitchToRegister }) {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-60"
           >
-            Sign In
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
 

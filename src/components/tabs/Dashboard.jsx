@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import { Timer, CheckCircle, Users, Square, ListChecks, ExternalLink, Video, MessageSquare, FolderOpen, Globe, Calendar, Clock, Plus, X, Edit2 } from "lucide-react";
 
@@ -20,6 +20,12 @@ export default function Dashboard({
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [editingLink, setEditingLink] = useState(null);
   const [linkForm, setLinkForm] = useState({ name: "", url: "", icon: "link" });
+  // Tick every 30 s so client timezone clocks stay current
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
   const TODAY = DateTime.now().setZone('Asia/Manila').toISODate();
   const totalHoursToday = timeEntries.filter((e) => e.date === TODAY).reduce((s, e) => s + e.duration, 0);
   const activeTasksCount = tasks.filter((t) => t.status === "In Progress").length;
@@ -162,45 +168,16 @@ export default function Dashboard({
 
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-4 border-b flex items-center space-x-2">
-          <Calendar className="h-5 w-5 text-blue-600" />
+          <Calendar className="h-5 w-5 text-gray-400" />
           <h3 className="text-lg font-semibold text-gray-900">Calendar Sync</h3>
+          <span className="ml-auto px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full font-medium">Coming Soon</span>
         </div>
         <div className="p-6 text-center">
-          <p className="text-gray-600 mb-4">Connect your calendar to sync tasks and deadlines</p>
-          <div className="flex justify-center space-x-3">
-            <button className="px-4 py-2 bg-white border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center space-x-2">
-              <Calendar className="h-4 w-4" />
-              <span>Connect Google Calendar</span>
-            </button>
-            <button className="px-4 py-2 bg-white border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 flex items-center space-x-2">
-              <Calendar className="h-4 w-4" />
-              <span>Connect Outlook</span>
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mt-3">Calendar integration coming soon!</p>
+          <p className="text-gray-400 text-sm">Google Calendar and Outlook integration will be available in a future update.</p>
         </div>
       </div>
 
-      {activeTask && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Active Timer</h3>
-              <p className="text-gray-600">{activeTask.title}</p>
-              <p className="text-sm text-gray-500">{getClientName(activeTask.clientId)}</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-3xl font-mono font-bold text-blue-600">{formatTime(timerSeconds)}</div>
-              <button onClick={stopTimerAndLog} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center space-x-2">
-                <Square className="h-4 w-4" />
-                <span>Stop & Log</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white rounded-lg shadow-sm border">
+<div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b">
           <h3 className="text-lg font-semibold text-gray-900">Recent Tasks</h3>
         </div>

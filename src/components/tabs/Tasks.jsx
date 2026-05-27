@@ -8,6 +8,7 @@ export default function Tasks({
   tasks,
   activeTimer,
   setActiveTimer,
+  stopTimerAndLog,
   setSelectedTask,
   getStatusColor,
   getPriorityColor,
@@ -25,7 +26,7 @@ export default function Tasks({
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const matchesSearch = task.title.toLowerCase().includes(searchText.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchText.toLowerCase());
+        (task.description || '').toLowerCase().includes(searchText.toLowerCase());
       const matchesStatus = statusFilter === "All Status" || task.status === statusFilter;
       const matchesClient = clientFilter === "All Clients" || getClientName(task.clientId) === clientFilter;
       return matchesSearch && matchesStatus && matchesClient;
@@ -309,6 +310,10 @@ export default function Tasks({
                         </button>
                         <button
                           onClick={() => {
+                            // Stop the timer first if this task is currently being tracked
+                            if (activeTimer === task.id) {
+                              stopTimerAndLog();
+                            }
                             setTasks(prev => prev.filter(t => t.id !== task.id));
                             if (setTimeEntries) {
                               setTimeEntries(prev => prev.filter(entry => entry.taskId !== task.id));
