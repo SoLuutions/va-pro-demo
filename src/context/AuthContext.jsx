@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import STORAGE_KEYS, { saveToStorage, loadFromStorage } from "../utils/localStorage";
 import { supabase, isSupabaseConfigured, mapSupabaseUser } from "../lib/supabase";
+import { formatAuthError, formatLoginError, isDuplicateSignup } from "../utils/authErrors";
 
 const AuthContext = createContext(null);
 
@@ -71,26 +72,30 @@ export const AuthProvider = ({ children }) => {
       setUser({ id: existingUser.email, email: existingUser.email, name: existingUser.name });
       return { success: true };
     }
-    return { success: false, error: "Invalid email or password" };
+    return { success: false, error: formatLoginError("Invalid email or password") };
   };
 
   const registerLocal = async (name, email, password) => {
+    const normalizedEmail = email.trim().toLowerCase();
     const users = loadFromStorage(STORAGE_KEYS.REGISTERED_USERS, []);
-    if (users.find((u) => u.email === email)) {
-      return { success: false, error: "Email already registered" };
+    if (users.find((u) => u.email.toLowerCase() === normalizedEmail)) {
+      return { success: false, error: formatAuthError("already registered") };
     }
     const hashed = await hashPassword(password);
-    users.push({ name, email, password: hashed });
+    users.push({ name, email: normalizedEmail, password: hashed });
     saveToStorage(STORAGE_KEYS.REGISTERED_USERS, users);
-    setUser({ id: email, email, name });
+    setUser({ id: normalizedEmail, email: normalizedEmail, name });
     return { success: true };
   };
 
   const login = async (email, password) => {
     if (!isSupabaseConfigured()) return loginLocal(email, password);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { success: false, error: error.message };
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (error) return { success: false, error: formatLoginError(error.message) };
 
     const mapped = mapSupabaseUser(data.user);
     setUser(mapped);
@@ -100,38 +105,49 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     if (!isSupabaseConfigured()) return registerLocal(name, email, password);
 
+    const trimmedEmail = email.trim().toLowerCase();
+
+    const { data, error } = await supabase.auth.signUp({
+      email: trimmedEmail,
+      password,
+      options: { data: { name: name.trim() } },
+    });
+
+    if (error) {
+      return { success: false, error: formatAuthError(error.message) };
+    }
+
+    if (isDuplicateSignup(data)) {
+      return { success: false, error: formatAuthError("already registered") };
+    }
+
+    if (data.session) {
+      setUser(mapSupabaseUser(data.user));
+      return { success: true };
+    }
+
+    // Fallback if confirmation is still required: server auto-confirms (npm run dev)
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name: name.trim(), email: trimmedEmail, password }),
       });
       const result = await response.json();
 
-      if (result.success) {
-        return login(email, password);
-      }
+      if (result.success) return login(trimmedEmail, password);
 
-      if (response.status === 503) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { name }, emailRedirectTo: undefined },
-        });
-        if (error) return { success: false, error: error.message };
-        if (data.session) {
-          setUser(mapSupabaseUser(data.user));
-          return { success: true };
-        }
-        return {
-          success: false,
-          error: "Account created but could not sign in. Run npm run dev (not vite alone) or disable email confirmation in Supabase.",
-        };
-      }
-
-      return { success: false, error: result.error || "Registration failed" };
+      return {
+        success: false,
+        error: result.error?.title
+          ? result.error
+          : formatAuthError(result.error || "Registration failed"),
+      };
     } catch {
-      return { success: false, error: "Could not reach auth server. Run: npm run dev" };
+      return {
+        success: false,
+        error: formatAuthError("Failed to fetch"),
+      };
     }
   };
 

@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { supabaseAdmin, adminConfigured } from './supabaseAdmin.js';
+import { mapServerRegisterError } from './authErrors.js';
 
 dotenv.config();
 
@@ -35,30 +36,36 @@ app.post('/api/auth/register', async (req, res) => {
     if (!adminConfigured) {
       return res.status(503).json({
         success: false,
-        error: 'Server auth not configured. Add SUPABASE_SERVICE_ROLE_KEY to .env',
+        error: mapServerRegisterError("Server auth not configured"),
       });
     }
 
     const { name, email, password } = req.body;
     if (!name?.trim() || !email?.trim() || !password) {
-      return res.status(400).json({ success: false, error: 'Name, email, and password are required' });
+      return res.status(400).json({
+        success: false,
+        error: mapServerRegisterError("Name, email, and password are required"),
+      });
     }
     if (password.length < 6) {
-      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+      return res.status(400).json({
+        success: false,
+        error: mapServerRegisterError("Password must be at least 6 characters"),
+      });
     }
 
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
-      email: email.trim(),
+      email: email.trim().toLowerCase(),
       password,
       email_confirm: true,
       user_metadata: { name: name.trim() },
     });
 
     if (error) {
-      const msg = error.message.includes('already been registered')
-        ? 'Email already registered'
-        : error.message;
-      return res.status(400).json({ success: false, error: msg });
+      return res.status(400).json({
+        success: false,
+        error: mapServerRegisterError(error.message),
+      });
     }
 
     res.json({

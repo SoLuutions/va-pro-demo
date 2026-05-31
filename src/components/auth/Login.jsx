@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
-import { LogIn } from 'lucide-react';
+import React, { useState } from "react";
+import { LogIn } from "lucide-react";
+import AuthAlert from "./AuthAlert";
+import { formatValidationError } from "../../utils/authErrors";
 
 export default function Login({ onLogin, onSwitchToRegister }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError(null);
 
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError(formatValidationError("required"));
       return;
     }
 
@@ -21,7 +22,11 @@ export default function Login({ onLogin, onSwitchToRegister }) {
     try {
       const result = await onLogin(email, password);
       if (!result.success) {
-        setError(result.error);
+        setError(
+          typeof result.error === "string"
+            ? { title: "Couldn't sign you in", message: result.error }
+            : result.error
+        );
       }
     } finally {
       setLoading(false);
@@ -43,12 +48,24 @@ export default function Login({ onLogin, onSwitchToRegister }) {
           <p className="text-gray-600 dark:text-gray-300">Sign in to your account</p>
         </div>
 
-
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded">
-              {error}
-            </div>
+            <AuthAlert
+              type="error"
+              title={error.title}
+              message={error.message}
+              action={
+                error.hint === "login" ? null : error.title?.includes("Incorrect") ? (
+                  <button
+                    type="button"
+                    onClick={onSwitchToRegister}
+                    className="text-sm font-medium text-red-700 dark:text-red-300 underline underline-offset-2 hover:opacity-80"
+                  >
+                    Create an account instead →
+                  </button>
+                ) : null
+              }
+            />
           )}
 
           <div>
@@ -61,6 +78,7 @@ export default function Login({ onLogin, onSwitchToRegister }) {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               placeholder="your@email.com"
+              disabled={loading}
             />
           </div>
 
@@ -74,6 +92,7 @@ export default function Login({ onLogin, onSwitchToRegister }) {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-100"
               placeholder="••••••••"
+              disabled={loading}
             />
           </div>
 
@@ -82,13 +101,13 @@ export default function Login({ onLogin, onSwitchToRegister }) {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-60"
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Don't have an account?{' '}
+            Don't have an account?{" "}
             <button
               onClick={onSwitchToRegister}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
