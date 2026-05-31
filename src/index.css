@@ -2,319 +2,519 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-50;
+/* ─────────────────────────────────────────────
+   VA Pro — Blue premium theme (CSS variables)
+───────────────────────────────────────────── */
+:root {
+  --va-accent:       #1F6FEB;
+  --va-accent-soft:  #3B82F6;
+  --va-bg:           #eef4fb;
+  --va-panel:        #ffffff;
+  --va-line:         #e2e8f0;
+  --va-txt:          #111827;
+  --va-muted:        #64748b;
+  --va-sidebar-1:    #1F6FEB;
+  --va-sidebar-2:    #1E40AF;
+  --va-sidebar-text: #ffffff;
+  --va-search-bg:    #f1f5f9;
+  --va-item-hover:   #f0f6ff;
+  --va-scroll-thumb: #cbd5e1;
+  --va-shadow:       0 30px 80px rgba(0, 0, 0, 0.18);
+  --va-sidebar-w:    280px;
+  --va-topbar-h:     72px;
 }
 
-/* Global dark mode background */
-.dark body {
-  /* Deep Ocean primary background and default text */
+.dark {
+  --va-accent:       #60A5FA;
+  --va-accent-soft:  #3B82F6;
+  --va-bg:           #0b1018;
+  --va-panel:        #111827;
+  --va-line:         #1e293b;
+  --va-txt:          #e7edf5;
+  --va-muted:        #94a3b8;
+  --va-sidebar-1:    #1e3a8a;
+  --va-sidebar-2:    #172554;
+  --va-sidebar-text: #e8f0fe;
+  --va-search-bg:    #0f172a;
+  --va-item-hover:   #152238;
+  --va-scroll-thumb: #334155;
+}
+
+/* ─────────────────────────────────────────────
+   Base
+───────────────────────────────────────────── */
+body {
+  background: var(--va-bg);
+  color: var(--va-txt);
+  transition: background 0.6s ease, color 0.6s ease;
+}
+
+.dark body,
+.dark {
   background-color: #0B0C10;
   color: #E6EDF3;
   color-scheme: dark;
 }
 
-/* Custom scrollbar styling */
+/* ─────────────────────────────────────────────
+   Ocean Dark Mode — CSS custom properties
+   Components can reference these directly via
+   var(--ocean-*) or use the Tailwind ocean-*
+   color classes added in tailwind.config.js
+───────────────────────────────────────────── */
+.dark {
+  --ocean-bg:           #0B0C10;
+  --ocean-surface:      #111C26;
+  --ocean-secondary:    #0E2433;
+  --ocean-border:       #1C2A3A;
+  --ocean-accent:       #1F6FEB;
+  --ocean-accent-hover: #00C2FF;
+  --ocean-text:         #E6EDF3;
+  --ocean-muted:        #8B949E;
+  --ocean-success:      #2EA043;
+  --ocean-warning:      #F0883E;
+  --ocean-error:        #DA3633;
+}
+
+/* ─────────────────────────────────────────────
+   Semantic dark-mode layer — applied via
+   @layer utilities so Tailwind dark: variants
+   take precedence when used inline.
+   No !important needed.
+───────────────────────────────────────────── */
+@layer utilities {
+  /* Surfaces */
+  .dark .bg-white        { background-color: var(--ocean-surface); }
+  .dark .bg-gray-50      { background-color: var(--ocean-surface); }
+  .dark .bg-gray-100     { background-color: var(--ocean-secondary); }
+  .dark .bg-gray-200     { background-color: var(--ocean-border); }
+  .dark .bg-gray-800     { background-color: var(--ocean-secondary); }
+  .dark .bg-gray-900     { background-color: var(--ocean-surface); }
+  .dark .bg-gray-950     { background-color: var(--ocean-bg); }
+
+  /* Hover surfaces */
+  .dark .hover\:bg-gray-50:hover  { background-color: var(--ocean-secondary); }
+  .dark .hover\:bg-gray-100:hover { background-color: var(--ocean-secondary); }
+  .dark .hover\:bg-gray-800:hover { background-color: var(--ocean-secondary); }
+
+  /* Borders */
+  .dark .border,
+  .dark .border-t,
+  .dark .border-b,
+  .dark .border-l,
+  .dark .border-r,
+  .dark .border-gray-200,
+  .dark .border-gray-300,
+  .dark .border-gray-700,
+  .dark .border-gray-800 { border-color: var(--ocean-border); }
+
+  .dark .border-blue-400,
+  .dark .border-blue-500 { border-color: var(--ocean-accent); }
+
+  /* Text */
+  .dark .text-gray-900,
+  .dark .text-gray-800,
+  .dark .text-gray-700,
+  .dark .text-gray-100   { color: var(--ocean-text); }
+
+  .dark .text-gray-600,
+  .dark .text-gray-500,
+  .dark .text-gray-400,
+  .dark .text-gray-300,
+  .dark .text-gray-200   { color: var(--ocean-muted); }
+
+  /* Accent */
+  .dark .text-blue-600,
+  .dark .text-blue-400   { color: var(--ocean-accent); }
+  .dark .hover\:text-blue-300:hover { color: var(--ocean-accent-hover); }
+
+  .dark .bg-blue-600     { background-color: var(--ocean-accent); }
+  .dark .hover\:bg-blue-700:hover { background-color: var(--ocean-accent-hover); }
+
+  .dark .focus\:ring-blue-500:focus  { --tw-ring-color: var(--ocean-accent); }
+  .dark .focus\:border-blue-500:focus { border-color: var(--ocean-accent); }
+  .dark .ring-blue-200   { --tw-ring-color: rgba(31, 111, 235, 0.35); }
+
+  /* Status */
+  .dark .bg-green-600    { background-color: var(--ocean-success); }
+  .dark .text-green-600  { color: var(--ocean-success); }
+  .dark .bg-red-600,
+  .dark .bg-red-500      { background-color: var(--ocean-error); }
+  .dark .text-red-600,
+  .dark .text-red-400    { color: var(--ocean-error); }
+  .dark .bg-yellow-600   { background-color: var(--ocean-warning); }
+  .dark .text-yellow-600 { color: var(--ocean-warning); }
+
+  /* Soft badge tints */
+  .dark .bg-blue-50      { background-color: rgba(31, 111, 235, 0.12); }
+  .dark .bg-blue-100     { background-color: rgba(31, 111, 235, 0.18); }
+  .dark .text-blue-800,
+  .dark .text-blue-700   { color: var(--ocean-accent); }
+
+  .dark .bg-green-50     { background-color: rgba(46, 160, 67, 0.12); }
+  .dark .bg-green-100    { background-color: rgba(46, 160, 67, 0.18); }
+  .dark .text-green-800,
+  .dark .text-green-700  { color: var(--ocean-success); }
+
+  .dark .bg-yellow-50    { background-color: rgba(240, 136, 62, 0.12); }
+  .dark .bg-yellow-100   { background-color: rgba(240, 136, 62, 0.18); }
+  .dark .text-yellow-800,
+  .dark .text-yellow-700 { color: var(--ocean-warning); }
+
+  .dark .bg-red-50       { background-color: rgba(218, 54, 51, 0.12); }
+  .dark .bg-red-100      { background-color: rgba(218, 54, 51, 0.18); }
+  .dark .text-red-800,
+  .dark .text-red-700    { color: var(--ocean-error); }
+
+  /* Auth gradient */
+  .dark .from-gray-900   { --tw-gradient-from: #0E2433; }
+  .dark .to-gray-950     { --tw-gradient-to:   #0B0C10; }
+}
+
+/* ─────────────────────────────────────────────
+   Scrollbar styling
+───────────────────────────────────────────── */
 * {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
 
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+*::-webkit-scrollbar       { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
   border-radius: 4px;
 }
+*::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
-*::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8;
-}
-
+/* ─────────────────────────────────────────────
+   Animations
+───────────────────────────────────────────── */
 @keyframes slide-in {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);   opacity: 1; }
+}
+
+.animate-slide-in { animation: slide-in 0.3s ease-out; }
+
+/* ─────────────────────────────────────────────
+   VA Pro — Premium shell layout
+───────────────────────────────────────────── */
+@keyframes va-bg-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+.va-app {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.va-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(135deg, #eef4fb 0%, #dbeafe 40%, #bfdbfe 100%);
+  background-size: 200% 200%;
+  animation: va-bg-shift 18s ease infinite;
+}
+
+.dark .va-bg {
+  background: linear-gradient(135deg, #0b1018 0%, #172554 40%, #1e3a8a 100%);
+  background-size: 200% 200%;
+}
+
+.va-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--va-sidebar-w);
+  height: 100vh;
+  background: linear-gradient(180deg, var(--va-sidebar-1), var(--va-sidebar-2));
+  color: var(--va-sidebar-text);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: var(--va-shadow);
+  z-index: 30;
+  overflow: hidden;
+  transition: background 0.6s ease;
+}
+
+.va-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.va-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #3B82F6;
+  box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.va-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.va-profile:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.va-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e3a5f;
+  background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.va-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.va-avatar-sm {
+  width: 38px;
+  height: 38px;
+  font-size: 13px;
+}
+
+.va-profile-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.va-profile-sub {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.va-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.va-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.va-nav-item:hover,
+.va-nav-item.active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.va-sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.va-icon-btn-sidebar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.4s ease;
+}
+
+.va-icon-btn-sidebar:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.va-main {
+  margin-left: var(--va-sidebar-w);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1;
+  transition: background 0.6s ease;
+}
+
+.dark .va-main {
+  background: rgba(17, 24, 39, 0.6);
+}
+
+.va-topbar {
+  height: var(--va-topbar-h);
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--va-line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  transition: border-color 0.6s ease;
+}
+
+.va-search {
+  flex: 1;
+  background: var(--va-search-bg);
+  border-radius: 999px;
+  padding: 12px 18px;
+  color: var(--va-muted);
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  transition: background 0.6s ease, color 0.6s ease;
+}
+
+.va-search:hover {
+  background: var(--va-item-hover);
+}
+
+.va-top-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.va-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--va-line);
+  background: var(--va-panel);
+  color: var(--va-txt);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.4s ease, border-color 0.4s ease;
+}
+
+.va-icon-btn:hover {
+  transform: translateY(-2px);
+}
+
+.va-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 6px;
+  cursor: pointer;
+}
+
+.va-user-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--va-txt);
+}
+
+.va-user-sub {
+  font-size: 12px;
+  color: var(--va-muted);
+}
+
+.va-timer-bar {
+  background: var(--va-accent);
+  color: #fff;
+  padding: 12px 24px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.va-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.va-content-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --va-sidebar-w: 72px;
   }
 
-  to {
-    transform: translateX(0);
-    opacity: 1;
+  .va-brand span,
+  .va-profile .va-profile-meta,
+  .va-nav-item span,
+  .va-user .va-user-meta {
+    display: none;
   }
-}
 
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out;
-}
+  .va-sidebar {
+    padding: 16px 12px;
+    align-items: center;
+  }
 
-/* Deep Ocean Dark Mode - palette and utility mappings */
-/* Palette variables */
-.dark {
-  --ocean-bg-primary: #0B0C10;
-  /* Background (Primary): Deep Black */
-  --ocean-bg-secondary: #0E2433;
-  /* Background (Secondary): Deep Ocean Blue */
-  --ocean-accent: #1F6FEB;
-  /* Accent 1: Electric Blue */
-  --ocean-accent-hover: #00C2FF;
-  /* Accent 2: Aqua Glow */
-  --ocean-text: #E6EDF3;
-  /* Text (Primary): Off-White */
-  --ocean-text-secondary: #8B949E;
-  /* Text (Secondary): Cool Gray */
-  --ocean-border: #1C2A3A;
-  /* Borders / Dividers: Dim Blue-Gray */
-  --ocean-surface: #111C26;
-  /* Card / Surface: Steel Blue Black */
-  --ocean-success: #2EA043;
-  /* Success: Sea Green */
-  --ocean-warning: #F0883E;
-  /* Warning: Coral Orange */
-  --ocean-error: #DA3633;
-  /* Error: Crimson Red */
-}
+  .va-brand {
+    justify-content: center;
+  }
 
-/* Borders */
-.dark .border,
-.dark .border-t,
-.dark .border-b,
-.dark .border-l,
-.dark .border-r {
-  border-color: var(--ocean-border) !important;
-}
+  .va-profile {
+    padding: 8px;
+    justify-content: center;
+  }
 
-.dark .border-gray-200 {
-  border-color: var(--ocean-border) !important;
-}
+  .va-nav-item {
+    justify-content: center;
+    padding: 12px;
+  }
 
-.dark .border-gray-300 {
-  border-color: var(--ocean-border) !important;
-}
+  .va-content {
+    padding: 16px;
+  }
 
-.dark .border-gray-700 {
-  border-color: var(--ocean-border) !important;
-}
+  .va-topbar {
+    padding: 12px 16px;
+    gap: 10px;
+  }
 
-.dark .border-gray-800 {
-  border-color: var(--ocean-border) !important;
-}
-
-.dark .border-blue-400 {
-  border-color: var(--ocean-accent) !important;
-}
-
-.dark .border-blue-500 {
-  border-color: var(--ocean-accent) !important;
-}
-
-/* Surfaces and containers */
-.dark .bg-white {
-  background-color: var(--ocean-surface) !important;
-}
-
-.dark .bg-gray-50 {
-  background-color: var(--ocean-surface) !important;
-}
-
-.dark .bg-gray-100 {
-  background-color: var(--ocean-bg-secondary) !important;
-}
-
-.dark .bg-gray-200 {
-  background-color: var(--ocean-border) !important;
-}
-
-.dark .bg-gray-800 {
-  background-color: var(--ocean-bg-secondary) !important;
-}
-
-.dark .bg-gray-900 {
-  background-color: var(--ocean-surface) !important;
-}
-
-.dark .bg-gray-950 {
-  background-color: var(--ocean-bg-primary) !important;
-}
-
-/* Hover surfaces */
-.dark .hover\:bg-gray-50:hover {
-  background-color: var(--ocean-bg-secondary) !important;
-}
-
-.dark .hover\:bg-gray-100:hover {
-  background-color: var(--ocean-bg-secondary) !important;
-}
-
-.dark .hover\:bg-gray-800:hover {
-  background-color: var(--ocean-bg-secondary) !important;
-}
-
-/* Gradients used in auth screens */
-.dark .from-gray-900 {
-  --tw-gradient-from: #0E2433 !important;
-}
-
-.dark .to-gray-950 {
-  --tw-gradient-to: #0B0C10 !important;
-}
-
-/* Text colors */
-.dark .text-gray-900 {
-  color: var(--ocean-text) !important;
-}
-
-.dark .text-gray-800 {
-  color: var(--ocean-text) !important;
-}
-
-.dark .text-gray-700 {
-  color: var(--ocean-text) !important;
-}
-
-.dark .text-gray-100 {
-  color: var(--ocean-text) !important;
-}
-
-.dark .text-gray-200 {
-  color: var(--ocean-text-secondary) !important;
-}
-
-.dark .text-gray-300 {
-  color: var(--ocean-text-secondary) !important;
-}
-
-.dark .text-gray-400 {
-  color: var(--ocean-text-secondary) !important;
-}
-
-.dark .text-gray-500 {
-  color: var(--ocean-text-secondary) !important;
-}
-
-.dark .text-gray-600 {
-  color: var(--ocean-text-secondary) !important;
-}
-
-/* Accent colors (links, buttons) */
-.dark .text-blue-400 {
-  color: var(--ocean-accent) !important;
-}
-
-.dark .text-blue-600 {
-  color: var(--ocean-accent) !important;
-}
-
-.dark .hover\:text-blue-300:hover {
-  color: var(--ocean-accent-hover) !important;
-}
-
-.dark .bg-blue-600 {
-  background-color: var(--ocean-accent) !important;
-}
-
-.dark .hover\:bg-blue-700:hover {
-  background-color: var(--ocean-accent-hover) !important;
-}
-
-.dark .ring-blue-200 {
-  --tw-ring-color: rgba(31, 111, 235, 0.35) !important;
-}
-
-.dark .focus\:ring-blue-500:focus {
-  --tw-ring-color: var(--ocean-accent) !important;
-}
-
-.dark .focus\:border-blue-500:focus {
-  border-color: var(--ocean-accent) !important;
-}
-
-.dark .focus\:ring-offset-2:focus {
-  --tw-ring-offset-color: var(--ocean-bg-primary) !important;
-}
-
-/* Status colors */
-.dark .bg-green-600 {
-  background-color: var(--ocean-success) !important;
-}
-
-.dark .text-green-600 {
-  color: var(--ocean-success) !important;
-}
-
-.dark .bg-yellow-600 {
-  background-color: var(--ocean-warning) !important;
-}
-
-.dark .text-yellow-600 {
-  color: var(--ocean-warning) !important;
-}
-
-.dark .bg-red-600,
-.dark .bg-red-500 {
-  background-color: var(--ocean-error) !important;
-}
-
-.dark .text-red-600,
-.dark .text-red-400 {
-  color: var(--ocean-error) !important;
-}
-
-/* Soft badges and chips */
-.dark .bg-blue-50 {
-  background-color: rgba(31, 111, 235, 0.12) !important;
-}
-
-.dark .bg-blue-100 {
-  background-color: rgba(31, 111, 235, 0.18) !important;
-}
-
-.dark .text-blue-800,
-.dark .text-blue-700 {
-  color: var(--ocean-accent) !important;
-}
-
-.dark .bg-green-50 {
-  background-color: rgba(46, 160, 67, 0.12) !important;
-}
-
-.dark .bg-green-100 {
-  background-color: rgba(46, 160, 67, 0.18) !important;
-}
-
-.dark .text-green-800,
-.dark .text-green-700 {
-  color: var(--ocean-success) !important;
-}
-
-.dark .bg-yellow-50 {
-  background-color: rgba(240, 136, 62, 0.12) !important;
-}
-
-.dark .bg-yellow-100 {
-  background-color: rgba(240, 136, 62, 0.18) !important;
-}
-
-.dark .text-yellow-800,
-.dark .text-yellow-700 {
-  color: var(--ocean-warning) !important;
-}
-
-.dark .bg-red-50 {
-  background-color: rgba(218, 54, 51, 0.12) !important;
-}
-
-.dark .bg-red-100 {
-  background-color: rgba(218, 54, 51, 0.18) !important;
-}
-
-.dark .text-red-800,
-.dark .text-red-700 {
-  color: var(--ocean-error) !important;
+  .va-search {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
 }

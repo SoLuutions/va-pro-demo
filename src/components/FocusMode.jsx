@@ -13,8 +13,6 @@ export default function FocusMode({
   onExit,
   isOnBreak
 }) {
-  if (!task) return null;
-
   const [pomodoroEnabled, setPomodoroEnabled] = useState(false);
   const [pomodoroPhase, setPomodoroPhase] = useState('work');
   const [pomodoroStartTime, setPomodoroStartTime] = useState(null);
@@ -51,6 +49,8 @@ export default function FocusMode({
       return () => clearInterval(interval);
     }
   }, [pomodoroEnabled, pomodoroStartTime, pomodoroPhase, isOnBreak]);
+
+  if (!task) return null;
 
   const timeInfo = getTaskTimeRemaining(task, timerSeconds);
   const currentTime = DateTime.now().setZone('Asia/Manila').toFormat('h:mm:ss a');
