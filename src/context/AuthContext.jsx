@@ -100,23 +100,39 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     if (!isSupabaseConfigured()) return registerLocal(name, email, password);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } },
-    });
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const result = await response.json();
 
-    if (error) return { success: false, error: error.message };
+      if (result.success) {
+        return login(email, password);
+      }
 
-    if (data.session) {
-      setUser(mapSupabaseUser(data.user));
-      return { success: true };
+      if (response.status === 503) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { name }, emailRedirectTo: undefined },
+        });
+        if (error) return { success: false, error: error.message };
+        if (data.session) {
+          setUser(mapSupabaseUser(data.user));
+          return { success: true };
+        }
+        return {
+          success: false,
+          error: "Account created but could not sign in. Run npm run dev (not vite alone) or disable email confirmation in Supabase.",
+        };
+      }
+
+      return { success: false, error: result.error || "Registration failed" };
+    } catch {
+      return { success: false, error: "Could not reach auth server. Run: npm run dev" };
     }
-
-    return {
-      success: true,
-      message: "Account created. Check your email to confirm, then sign in.",
-    };
   };
 
   const logout = async () => {

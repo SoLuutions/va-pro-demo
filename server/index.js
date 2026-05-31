@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { supabaseAdmin, adminConfigured } from './supabaseAdmin.js';
 
 dotenv.config();
 
@@ -18,15 +19,58 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
-const memoryStore = new Map(); 
-
+const memoryStore = new Map();
 
 app.get('/api/health', async (_req, res) => {
+  res.json({
+    status: 'ok',
+    storage: 'memory',
+    supabaseAdmin: adminConfigured,
+  });
+});
+
+// Demo signup — creates user already confirmed (no confirmation email sent)
+app.post('/api/auth/register', async (req, res) => {
   try {
-    res.json({ status: 'ok', storage: 'memory' });
-  } catch (e) {
-    res.status(500).json({ status: 'fail', error: e.message });
+    if (!adminConfigured) {
+      return res.status(503).json({
+        success: false,
+        error: 'Server auth not configured. Add SUPABASE_SERVICE_ROLE_KEY to .env',
+      });
+    }
+
+    const { name, email, password } = req.body;
+    if (!name?.trim() || !email?.trim() || !password) {
+      return res.status(400).json({ success: false, error: 'Name, email, and password are required' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+    }
+
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+      email: email.trim(),
+      password,
+      email_confirm: true,
+      user_metadata: { name: name.trim() },
+    });
+
+    if (error) {
+      const msg = error.message.includes('already been registered')
+        ? 'Email already registered'
+        : error.message;
+      return res.status(400).json({ success: false, error: msg });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        name: name.trim(),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
