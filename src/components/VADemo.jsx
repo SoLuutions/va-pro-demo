@@ -13,6 +13,8 @@ import Toast from "./Toast";
 import { getTaskTimeRemaining, formatTimeRemaining } from "../utils/timeWindow";
 import { notificationsManager } from "../utils/notifications";
 import { saveToStorage, loadFromStorage } from "../utils/localStorage";
+import { fetchUserDataKey, upsertUserDataKey } from "../utils/cloudStorage";
+import { isSupabaseConfigured } from "../lib/supabase";
 
 const Dashboard    = React.lazy(() => import("./tabs/Dashboard"));
 const Clients      = React.lazy(() => import("./tabs/Clients"));
@@ -369,13 +371,25 @@ const VADemo = () => {
   };
 
   useEffect(() => {
+    if (!user?.id || !isSupabaseConfigured()) return;
+
+    fetchUserDataKey(user.id, "va_pro_ui_settings", { darkMode: false, ndaMode: false })
+      .then((settings) => {
+        if (settings) setUiSettings(settings);
+      });
+  }, [user?.id]);
+
+  useEffect(() => {
     saveToStorage("va_pro_ui_settings", uiSettings);
+    if (user?.id && isSupabaseConfigured()) {
+      upsertUserDataKey(user.id, "va_pro_ui_settings", uiSettings);
+    }
     if (uiSettings.darkMode) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
-  }, [uiSettings]);
+  }, [uiSettings, user?.id]);
 
   return (
     <AppDataProvider user={user} addToast={addToast}>

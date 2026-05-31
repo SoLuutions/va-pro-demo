@@ -7,6 +7,7 @@ export default function Register({ onRegister, onSwitchToLogin }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -33,6 +34,10 @@ export default function Register({ onRegister, onSwitchToLogin }) {
       const result = await onRegister(name, email, password);
       if (!result.success) {
         setError(result.error);
+        setInfo('');
+      } else if (result.message) {
+        setInfo(result.message);
+        setError('');
       }
     } finally {
       setLoading(false);
@@ -58,6 +63,11 @@ export default function Register({ onRegister, onSwitchToLogin }) {
           {error && (
             <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded">
               {error}
+            </div>
+          )}
+          {info && (
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-4 py-3 rounded">
+              {info}
             </div>
           )}
 

@@ -3,8 +3,11 @@ import { DateTime } from "luxon";
 import { canStartTimer, getTaskTimeRemaining, formatTimeRemaining, getClientDailyTimeLeft } from "../utils/timeWindow";
 import { notificationsManager } from "../utils/notifications";
 import STORAGE_KEYS, { saveToStorage, loadFromStorage } from "../utils/localStorage";
+import { fetchAllUserData, upsertUserDataKey } from "../utils/cloudStorage";
+import { isSupabaseConfigured } from "../lib/supabase";
 
 const AppDataContext = createContext(null);
+const SAVE_DEBOUNCE_MS = 800;
 
 export function useAppData() {
   const ctx = useContext(AppDataContext);
@@ -12,8 +15,34 @@ export function useAppData() {
   return ctx;
 }
 
+function useDebouncedCloudSave(userId, key, value, enabled) {
+  const skipRef = useRef(true);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      skipRef.current = true;
+      return;
+    }
+
+    if (skipRef.current) {
+      skipRef.current = false;
+      return;
+    }
+
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      saveToStorage(key, value);
+      if (userId && isSupabaseConfigured()) {
+        upsertUserDataKey(userId, key, value);
+      }
+    }, SAVE_DEBOUNCE_MS);
+
+    return () => clearTimeout(timerRef.current);
+  }, [userId, key, value, enabled]);
+}
+
 export function AppDataProvider({ user, addToast, children }) {
-  // ── Persisted state ──────────────────────────────────────────────────────
   const [clients, setClients] = useState(() => loadFromStorage(STORAGE_KEYS.CLIENTS, []));
   const [tasks, setTasks] = useState(() => loadFromStorage(STORAGE_KEYS.TASKS, []));
   const [timeEntries, setTimeEntries] = useState(() => loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, []));
@@ -27,8 +56,9 @@ export function AppDataProvider({ user, addToast, children }) {
       avatarUrl: "",
     })
   );
+  const [dataLoading, setDataLoading] = useState(Boolean(user?.id && isSupabaseConfigured()));
+  const [hydrated, setHydrated] = useState(!isSupabaseConfigured() || !user?.id);
 
-  // ── Timer state ──────────────────────────────────────────────────────────
   const [activeTimer, setActiveTimer] = useState(null);
   const [timerStartedAt, setTimerStartedAt] = useState(null);
   const [timerSeconds, setTimerSeconds] = useState(0);
@@ -36,23 +66,93 @@ export function AppDataProvider({ user, addToast, children }) {
   const [breakStartedAt, setBreakStartedAt] = useState(null);
   const [totalBreakTime, setTotalBreakTime] = useState(0);
 
-  // ── Stable refs (accessed inside setInterval without recreating) ─────────
   const tasksRef = useRef([]);
   const clientsRef = useRef([]);
   const timeEntriesRef = useRef([]);
 
-  // ── Persistence effects ──────────────────────────────────────────────────
-  useEffect(() => { saveToStorage(STORAGE_KEYS.CLIENTS, clients); clientsRef.current = clients; }, [clients]);
-  useEffect(() => { saveToStorage(STORAGE_KEYS.TASKS, tasks); tasksRef.current = tasks; }, [tasks]);
-  useEffect(() => { saveToStorage(STORAGE_KEYS.TIME_ENTRIES, timeEntries); timeEntriesRef.current = timeEntries; }, [timeEntries]);
-  useEffect(() => { saveToStorage(STORAGE_KEYS.TASK_TEMPLATES, taskTemplates); }, [taskTemplates]);
-  useEffect(() => { saveToStorage(STORAGE_KEYS.USER_PROFILE, userProfile); }, [userProfile]);
-  useEffect(() => { saveToStorage(STORAGE_KEYS.QUICK_LINKS, quickLinks); }, [quickLinks]);
+  useEffect(() => {
+    if (!user?.id || !isSupabaseConfigured()) {
+      setHydrated(true);
+      setDataLoading(false);
+      return;
+    }
 
-  // ── Sync auth user → profile ─────────────────────────────────────────────
+    let cancelled = false;
+
+    async function loadCloudData() {
+      setDataLoading(true);
+      setHydrated(false);
+
+      try {
+        const data = await fetchAllUserData(user.id, {
+          [STORAGE_KEYS.CLIENTS]: [],
+          [STORAGE_KEYS.TASKS]: [],
+          [STORAGE_KEYS.TIME_ENTRIES]: [],
+          [STORAGE_KEYS.TASK_TEMPLATES]: [],
+          [STORAGE_KEYS.QUICK_LINKS]: [],
+          [STORAGE_KEYS.USER_PROFILE]: {
+            name: user.name || "",
+            email: user.email || "",
+            timezone: "Asia/Manila",
+            avatarUrl: "",
+          },
+          [STORAGE_KEYS.ACTIVE_TIMER]: null,
+        });
+
+        if (cancelled) return;
+
+        setClients(data[STORAGE_KEYS.CLIENTS] ?? []);
+        setTasks(data[STORAGE_KEYS.TASKS] ?? []);
+        setTimeEntries(data[STORAGE_KEYS.TIME_ENTRIES] ?? []);
+        setTaskTemplates(data[STORAGE_KEYS.TASK_TEMPLATES] ?? []);
+        setQuickLinks(data[STORAGE_KEYS.QUICK_LINKS] ?? []);
+        setUserProfile(data[STORAGE_KEYS.USER_PROFILE] ?? {
+          name: user.name || "",
+          email: user.email || "",
+          timezone: "Asia/Manila",
+          avatarUrl: "",
+        });
+
+        const savedTimer = data[STORAGE_KEYS.ACTIVE_TIMER];
+        if (savedTimer?.taskId && savedTimer?.startedAt) {
+          const task = (data[STORAGE_KEYS.TASKS] ?? []).find((t) => t.id === savedTimer.taskId);
+          if (task && task.status !== "Completed") {
+            setActiveTimer(savedTimer.taskId);
+            setTimerStartedAt(savedTimer.startedAt);
+            setTotalBreakTime(savedTimer.totalBreakTime || 0);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load cloud data:", error);
+        addToast?.("Could not load data from database. Using local cache.", "warning");
+      } finally {
+        if (!cancelled) {
+          setHydrated(true);
+          setDataLoading(false);
+        }
+      }
+    }
+
+    loadCloudData();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  const persistEnabled = hydrated && Boolean(user?.id);
+
+  useDebouncedCloudSave(user?.id, STORAGE_KEYS.CLIENTS, clients, persistEnabled);
+  useDebouncedCloudSave(user?.id, STORAGE_KEYS.TASKS, tasks, persistEnabled);
+  useDebouncedCloudSave(user?.id, STORAGE_KEYS.TIME_ENTRIES, timeEntries, persistEnabled);
+  useDebouncedCloudSave(user?.id, STORAGE_KEYS.TASK_TEMPLATES, taskTemplates, persistEnabled);
+  useDebouncedCloudSave(user?.id, STORAGE_KEYS.QUICK_LINKS, quickLinks, persistEnabled);
+  useDebouncedCloudSave(user?.id, STORAGE_KEYS.USER_PROFILE, userProfile, persistEnabled);
+
+  useEffect(() => { clientsRef.current = clients; }, [clients]);
+  useEffect(() => { tasksRef.current = tasks; }, [tasks]);
+  useEffect(() => { timeEntriesRef.current = timeEntries; }, [timeEntries]);
+
   useEffect(() => {
     if (user && (!userProfile.name || !userProfile.email)) {
-      setUserProfile(prev => ({
+      setUserProfile((prev) => ({
         ...prev,
         name: user.name || prev.name,
         email: user.email || prev.email,
@@ -60,29 +160,33 @@ export function AppDataProvider({ user, addToast, children }) {
     }
   }, [user]);
 
-  // ── Restore active timer on page load ────────────────────────────────────
   useEffect(() => {
+    if (!hydrated) return;
+
     const saved = loadFromStorage(STORAGE_KEYS.ACTIVE_TIMER);
-    if (saved?.taskId && saved?.startedAt) {
-      const task = tasksRef.current.find(t => t.id === saved.taskId);
+    if (saved?.taskId && saved?.startedAt && !activeTimer) {
+      const task = tasksRef.current.find((t) => t.id === saved.taskId);
       if (task && task.status !== "Completed") {
         setActiveTimer(saved.taskId);
         setTimerStartedAt(saved.startedAt);
         setTotalBreakTime(saved.totalBreakTime || 0);
       }
     }
-  }, []);
+  }, [hydrated]);
 
-  // ── Persist active timer ──────────────────────────────────────────────────
   useEffect(() => {
-    if (activeTimer && timerStartedAt) {
-      saveToStorage(STORAGE_KEYS.ACTIVE_TIMER, { taskId: activeTimer, startedAt: timerStartedAt, totalBreakTime });
-    } else {
-      saveToStorage(STORAGE_KEYS.ACTIVE_TIMER, null);
-    }
-  }, [activeTimer, timerStartedAt, totalBreakTime]);
+    if (!hydrated) return;
 
-  // ── Timer tick ────────────────────────────────────────────────────────────
+    const timerData = activeTimer && timerStartedAt
+      ? { taskId: activeTimer, startedAt: timerStartedAt, totalBreakTime }
+      : null;
+
+    saveToStorage(STORAGE_KEYS.ACTIVE_TIMER, timerData);
+    if (user?.id && isSupabaseConfigured()) {
+      upsertUserDataKey(user.id, STORAGE_KEYS.ACTIVE_TIMER, timerData);
+    }
+  }, [activeTimer, timerStartedAt, totalBreakTime, hydrated, user?.id]);
+
   useEffect(() => {
     if (!activeTimer || !timerStartedAt || isOnBreak) return;
 
@@ -97,8 +201,8 @@ export function AppDataProvider({ user, addToast, children }) {
       const elapsed = Math.floor((Date.now() - new Date(timerStartedAt).getTime()) / 1000) - totalBreakTime;
       setTimerSeconds(Math.max(0, elapsed));
 
-      const task = currentTasks.find(t => t.id === activeTimer);
-      const client = currentClients.find(c => c.id === task?.clientId);
+      const task = currentTasks.find((t) => t.id === activeTimer);
+      const client = currentClients.find((c) => c.id === task?.clientId);
 
       if (client?.dailyTimeLimitMin) {
         const hoursElapsed = elapsed / 3600;
@@ -140,12 +244,11 @@ export function AppDataProvider({ user, addToast, children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTimer, timerStartedAt, isOnBreak, totalBreakTime]);
 
-  // ── Timer actions ─────────────────────────────────────────────────────────
   const handleStartTimer = (taskId) => {
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
 
-    const client = clients.find(c => c.id === task.clientId);
+    const client = clients.find((c) => c.id === task.clientId);
     const permission = canStartTimer(client, task, timeEntries);
 
     if (!permission.allowed) {
@@ -183,7 +286,7 @@ export function AppDataProvider({ user, addToast, children }) {
       setIsOnBreak(false);
 
       if (task.status !== "In Progress" && task.status !== "Completed") {
-        setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: "In Progress" } : t)));
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: "In Progress" } : t)));
       }
       addToast(`Timer started for: ${task.title}`, "success");
     }
@@ -204,7 +307,7 @@ export function AppDataProvider({ user, addToast, children }) {
   const stopTimerAndLog = () => {
     if (!activeTimer) return;
 
-    const task = tasksRef.current.find(t => t.id === activeTimer);
+    const task = tasksRef.current.find((t) => t.id === activeTimer);
     if (!task) {
       setActiveTimer(null); setTimerStartedAt(null);
       setTimerSeconds(0); setTotalBreakTime(0); setIsOnBreak(false);
@@ -232,9 +335,9 @@ export function AppDataProvider({ user, addToast, children }) {
         : `Auto-logged: ${task.title}`,
     };
 
-    setTimeEntries(prev => [...prev, newEntry]);
-    setTasks(prev =>
-      prev.map(t => (t.id === task.id ? { ...t, timeSpent: +(t.timeSpent + hours).toFixed(2) } : t))
+    setTimeEntries((prev) => [...prev, newEntry]);
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, timeSpent: +(t.timeSpent + hours).toFixed(2) } : t))
     );
 
     setActiveTimer(null); setTimerStartedAt(null);
@@ -247,7 +350,7 @@ export function AppDataProvider({ user, addToast, children }) {
   const markTaskAsDone = () => {
     if (!activeTimer) return;
 
-    const task = tasksRef.current.find(t => t.id === activeTimer);
+    const task = tasksRef.current.find((t) => t.id === activeTimer);
     if (!task) {
       setActiveTimer(null); setTimerStartedAt(null);
       setTimerSeconds(0); setTotalBreakTime(0); setIsOnBreak(false);
@@ -275,9 +378,9 @@ export function AppDataProvider({ user, addToast, children }) {
         : `Task completed: ${task.title}`,
     };
 
-    setTimeEntries(prev => [...prev, newEntry]);
-    setTasks(prev =>
-      prev.map(t =>
+    setTimeEntries((prev) => [...prev, newEntry]);
+    setTasks((prev) =>
+      prev.map((t) =>
         t.id === task.id ? { ...t, timeSpent: +(t.timeSpent + hours).toFixed(2), status: "Completed" } : t
       )
     );
@@ -289,7 +392,6 @@ export function AppDataProvider({ user, addToast, children }) {
     addToast(`Task completed! Logged ${hours.toFixed(2)} hours`, "success");
   };
 
-  // ── Utility formatters ────────────────────────────────────────────────────
   const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
     const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
@@ -317,7 +419,7 @@ export function AppDataProvider({ user, addToast, children }) {
   };
 
   const getClientName = (clientId) =>
-    clients.find(c => c.id === clientId)?.name || "Unknown Client";
+    clients.find((c) => c.id === clientId)?.name || "Unknown Client";
 
   const formatCurrency = (amount, currency = "USD") => {
     try {
@@ -331,35 +433,38 @@ export function AppDataProvider({ user, addToast, children }) {
     }
   };
 
-  // ── Derived values ────────────────────────────────────────────────────────
-  const activeTask   = tasks.find(t => t.id === activeTimer) || null;
-  const activeClient = activeTask ? clients.find(c => c.id === activeTask.clientId) : null;
+  const activeTask   = tasks.find((t) => t.id === activeTimer) || null;
+  const activeClient = activeTask ? clients.find((c) => c.id === activeTask.clientId) : null;
+
+  if (dataLoading) {
+    return (
+      <div className="va-app">
+        <div className="va-bg" aria-hidden="true" />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AppDataContext.Provider
       value={{
-        // Data
         clients, setClients,
         tasks, setTasks,
         timeEntries, setTimeEntries,
         taskTemplates, setTaskTemplates,
         quickLinks, setQuickLinks,
         userProfile, setUserProfile,
-
-        // Timer state
         activeTimer,
         timerSeconds,
         isOnBreak,
         activeTask,
         activeClient,
-
-        // Timer actions
         setActiveTimer: handleStartTimer,
         handleBreak,
         stopTimerAndLog,
         markTaskAsDone,
-
-        // Formatters / helpers
         formatTime,
         getStatusColor,
         getPriorityColor,
@@ -367,6 +472,7 @@ export function AppDataProvider({ user, addToast, children }) {
         formatCurrency,
         getTaskTimeRemaining,
         formatTimeRemaining,
+        dataLoading,
       }}
     >
       {children}
