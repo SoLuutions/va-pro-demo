@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  BarChart3, Users, CheckCircle, Clock, FileText, Maximize2, LogOut, Sun, Moon, Plus, ChevronsLeft, ChevronsRight,
+  BarChart3, Users, CheckCircle, Clock, DollarSign, FileText, Maximize2, LogOut, Sun, Moon, Plus, ChevronsLeft, ChevronsRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { AppDataProvider, useAppData } from "../context/AppDataContext";
