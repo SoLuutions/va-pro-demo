@@ -8,6 +8,7 @@ import { isSupabaseConfigured } from "../lib/supabase";
 
 const AppDataContext = createContext(null);
 const SAVE_DEBOUNCE_MS = 800;
+const TRASH_RETENTION_MS = 2 * 24 * 60 * 60 * 1000;
 
 export function useAppData() {
   const ctx = useContext(AppDataContext);
@@ -149,6 +150,21 @@ export function AppDataProvider({ user, addToast, children }) {
   useEffect(() => { clientsRef.current = clients; }, [clients]);
   useEffect(() => { tasksRef.current = tasks; }, [tasks]);
   useEffect(() => { timeEntriesRef.current = timeEntries; }, [timeEntries]);
+
+  useEffect(() => {
+    if (!clients.length) return;
+
+    const now = Date.now();
+    const expiredClientIds = clients
+      .filter((client) => client.deletedAt && now - new Date(client.deletedAt).getTime() >= TRASH_RETENTION_MS)
+      .map((client) => client.id);
+
+    if (expiredClientIds.length === 0) return;
+
+    setClients((prev) => prev.filter((client) => !expiredClientIds.includes(client.id)));
+    setTasks((prev) => prev.filter((task) => !expiredClientIds.includes(task.clientId)));
+    setTimeEntries((prev) => prev.filter((entry) => !expiredClientIds.includes(entry.clientId)));
+  }, [clients]);
 
   useEffect(() => {
     if (user && (!userProfile.name || !userProfile.email)) {

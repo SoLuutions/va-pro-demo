@@ -343,7 +343,13 @@ export default function Tasks({
                         </button>
                         <button
                           onClick={() => {
-                            // Stop the timer first if this task is currently being tracked
+                            const requiresConfirmation = task.status !== "To Do" || task.timeSpent > 0 || activeTimer === task.id;
+                            if (requiresConfirmation) {
+                              const confirmMessage = task.status !== "To Do"
+                                ? `Delete task \"${task.title}\"? This task has already started or been reviewed.`
+                                : `Delete task \"${task.title}\"?`;
+                              if (!confirm(confirmMessage)) return;
+                            }
                             if (activeTimer === task.id) {
                               stopTimerAndLog();
                             }

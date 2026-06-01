@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  BarChart3, Users, CheckCircle, Clock, DollarSign, Maximize2, LogOut, Sun, Moon, Plus,
+  BarChart3, Users, CheckCircle, Clock, FileText, Maximize2, LogOut, Sun, Moon, Plus, ChevronsLeft, ChevronsRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { AppDataProvider, useAppData } from "../context/AppDataContext";
@@ -70,6 +70,7 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showFocusMode, setShowFocusMode] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
@@ -115,7 +116,7 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
     { id: "clients",   name: "Clients",       icon: Users },
     { id: "tasks",     name: "Tasks",         icon: CheckCircle },
     { id: "time",      name: "Time Tracking", icon: Clock },
-    { id: "reports",   name: "Reports",       icon: DollarSign },
+    { id: "reports",   name: "Reports",       icon: FileText },
     { id: "billing",   name: "Billing",       icon: DollarSign },
   ];
 
@@ -141,10 +142,10 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
 
   return (
     <div className="va-app">
-      <ShaderBackground theme={uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue")} />
+      <ShaderBackground theme={uiSettings.theme || (uiSettings.darkMode ? "dark" : "green")} />
 
       {/* ── Sidebar ── */}
-      <aside className="va-sidebar">
+      <aside className={`va-sidebar${isSidebarCollapsed ? " collapsed" : ""}`}>
         <div className="va-brand">
           <div className="va-logo" />
           <span>VA Pro</span>
@@ -176,8 +177,15 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
 
         <div className="va-sidebar-footer">
           <button
+            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+            className="va-icon-btn-sidebar"
+            title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isSidebarCollapsed ? <ChevronsRight className="h-[18px] w-[18px]" /> : <ChevronsLeft className="h-[18px] w-[18px]" />}
+          </button>
+          <button
             onClick={() => {
-              const currentTheme = uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue");
+              const currentTheme = uiSettings.theme || (uiSettings.darkMode ? "dark" : "green");
               
               // Determine new theme based on current theme
               let newTheme;
@@ -216,7 +224,7 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
       </aside>
 
       {/* ── Main ── */}
-      <main className="va-main">
+      <main className={`va-main${isSidebarCollapsed ? " collapsed" : ""}`}>
         <div className="va-topbar">
           <button
             className="va-search"
@@ -246,14 +254,6 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
             >
               <Plus className="h-[18px] w-[18px]" />
             </button>
-          </div>
-
-          <div className="va-user" onClick={() => setShowProfileModal(true)}>
-            <Avatar profile={userProfile} uiSettings={uiSettings} size="va-avatar-sm" />
-            <div className="va-user-meta hidden sm:block">
-              <div className="va-user-name">{displayName}</div>
-              <div className="va-user-sub">Online</div>
-            </div>
           </div>
         </div>
 
@@ -396,7 +396,7 @@ const VADemo = () => {
 
   const [toasts, setToasts] = useState([]);
   const [uiSettings, setUiSettings] = useState(() =>
-    loadFromStorage("va_pro_ui_settings", { darkMode: false, ndaMode: false })
+    loadFromStorage("va_pro_ui_settings", { darkMode: false, ndaMode: false, theme: "green" })
   );
 
   const addToast = (message, type = "info") => {
@@ -424,7 +424,7 @@ const VADemo = () => {
     }
     document.documentElement.classList.remove("dark", "blue", "teal", "green", "red");
     
-    const theme = uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue");
+    const theme = uiSettings.theme || (uiSettings.darkMode ? "dark" : "green");
     if (theme === "blue") {
       document.documentElement.classList.add("blue");
     } else if (theme === "dark") {

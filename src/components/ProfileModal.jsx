@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { useAppData } from '../context/AppDataContext';
 
 export default function ProfileModal({ profile, onSave, onClose, uiSettings, onUpdateUiSettings }) {
-  const { seedDemoData } = useAppData();
   const [formData, setFormData] = useState({
     name: profile?.name || '',
     email: profile?.email || '',
@@ -102,7 +100,7 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
                 UI Accent Theme
               </label>
               <select
-                value={uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue")}
+                value={uiSettings.theme || (uiSettings.darkMode ? "dark" : "green")}
                 onChange={(e) => {
                   const val = e.target.value;
                   const isDark = val === "dark" || val === "green-dark" || val === "red-dark";
@@ -116,7 +114,7 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
               >
                 <option value="blue">Classic Blue</option>
                 <option value="dark">Ocean Dark</option>
-                <option value="green">Green Theme</option>
+                <option value="green">Green Light</option>
                 <option value="green-dark">Green Dark</option>
                 <option value="red">Red Theme</option>
                 <option value="red-dark">Red Dark</option>
@@ -137,22 +135,6 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
               </button>
             </div>
 
-            <div className="flex items-center justify-between border-t pt-3 border-gray-100 dark:border-gray-800">
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Seed Demo Data</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Populate the app with realistic mock clients and tasks</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  seedDemoData();
-                  onClose();
-                }}
-                className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium"
-              >
-                Seed Data
-              </button>
-            </div>
           </div>
 
           <div className="flex space-x-3 pt-4">
