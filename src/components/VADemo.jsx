@@ -176,7 +176,30 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
 
         <div className="va-sidebar-footer">
           <button
-            onClick={() => setUiSettings((prev) => ({ ...prev, darkMode: !prev.darkMode }))}
+            onClick={() => {
+              const currentTheme = uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue");
+              
+              // Determine new theme based on current theme
+              let newTheme;
+              if (currentTheme === "blue") {
+                newTheme = "dark";
+              } else if (currentTheme === "dark") {
+                newTheme = "blue";
+              } else if (currentTheme === "green") {
+                newTheme = "green-dark";
+              } else if (currentTheme === "green-dark") {
+                newTheme = "green";
+              } else if (currentTheme === "red") {
+                newTheme = "red-dark";
+              } else if (currentTheme === "red-dark") {
+                newTheme = "red";
+              } else {
+                newTheme = currentTheme === "dark" ? "blue" : "dark";
+              }
+              
+              const isDark = newTheme === "dark" || newTheme === "green-dark" || newTheme === "red-dark";
+              setUiSettings((prev) => ({ ...prev, theme: newTheme, darkMode: isDark }));
+            }}
             className="va-icon-btn-sidebar"
             title={uiSettings.darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >

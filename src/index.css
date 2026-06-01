@@ -41,17 +41,17 @@
 }
 
 .red {
-  --va-accent:       #DC2626;
-  --va-accent-soft:  #EF4444;
-  --va-bg:           #fef7f7;
+  --va-accent:       #EF4444;
+  --va-accent-soft:  #FCA5A5;
+  --va-bg:           #faf5f5;
   --va-panel:        #ffffff;
   --va-line:         #fee2e2;
-  --va-txt:          #111111;
-  --va-muted:        #9b7080;
+  --va-txt:          #1f1f1f;
+  --va-muted:        #9d6b6b;
   --va-sidebar-1:    #DC2626;
-  --va-sidebar-2:    #991b1b;
+  --va-sidebar-2:    #b91c1c;
   --va-sidebar-text: #ffffff;
-  --va-search-bg:    #fef7f7;
+  --va-search-bg:    #fef2f2;
   --va-item-hover:   #fee2e2;
   --va-scroll-thumb: #fecaca;
 }
@@ -93,17 +93,17 @@
 .red .dark {
   --va-accent:       #FF6B6B;
   --va-accent-soft:  #FFA5A5;
-  --va-bg:           #1a0b0b;
-  --va-panel:        #1f1010;
+  --va-bg:           #1a0f0f;
+  --va-panel:        #2a1515;
   --va-line:         #3d1e1e;
-  --va-txt:          #f1e7e7;
-  --va-muted:        #bba6a6;
-  --va-sidebar-1:    #dc2626;
-  --va-sidebar-2:    #991b1b;
-  --va-sidebar-text: #f9e7e7;
-  --va-search-bg:    #2a1515;
-  --va-item-hover:   #3d2222;
-  --va-scroll-thumb: #5c3838;
+  --va-txt:          #f5e5e5;
+  --va-muted:        #c9a0a0;
+  --va-sidebar-1:    #DC2626;
+  --va-sidebar-2:    #a71616;
+  --va-sidebar-text: #fff5f5;
+  --va-search-bg:    #3d2020;
+  --va-item-hover:   #4d2a2a;
+  --va-scroll-thumb: #7a4444;
 }
 
 /* Page entry animations */

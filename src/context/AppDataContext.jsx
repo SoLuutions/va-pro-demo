@@ -182,7 +182,7 @@ export function AppDataProvider({ user, addToast, children }) {
       : null;
 
     saveToStorage(STORAGE_KEYS.ACTIVE_TIMER, timerData);
-    if (user?.id && isSupabaseConfigured()) {
+    if (user?.id && isSupabaseConfigured() && timerData) {
       upsertUserDataKey(user.id, STORAGE_KEYS.ACTIVE_TIMER, timerData);
     }
   }, [activeTimer, timerStartedAt, totalBreakTime, hydrated, user?.id]);
