@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { DateTime } from "luxon";
-import { Timer, CheckCircle, Users, Square, ListChecks, ExternalLink, Video, MessageSquare, FolderOpen, Globe, Calendar, Clock, Plus, X, Edit2 } from "lucide-react";
+import { Timer, CheckCircle, Users, Square, ListChecks, ExternalLink, Video, MessageSquare, FolderOpen, Globe, Calendar, Clock, Plus, X, Edit2, BarChart3 } from "lucide-react";
 
 export default function Dashboard({
   clients,
