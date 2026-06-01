@@ -24,7 +24,7 @@
   --va-topbar-h:     72px;
 }
 
-.teal {
+.green {
   --va-accent:       #128C7E;
   --va-accent-soft:  #1aa79b;
   --va-bg:           #eef6f5;
@@ -38,6 +38,22 @@
   --va-search-bg:    #f4f7f7;
   --va-item-hover:   #f1f7f6;
   --va-scroll-thumb: #cfd9d8;
+}
+
+.red {
+  --va-accent:       #DC2626;
+  --va-accent-soft:  #EF4444;
+  --va-bg:           #fef7f7;
+  --va-panel:        #ffffff;
+  --va-line:         #fee2e2;
+  --va-txt:          #111111;
+  --va-muted:        #9b7080;
+  --va-sidebar-1:    #DC2626;
+  --va-sidebar-2:    #991b1b;
+  --va-sidebar-text: #ffffff;
+  --va-search-bg:    #fef7f7;
+  --va-item-hover:   #fee2e2;
+  --va-scroll-thumb: #fecaca;
 }
 
 .dark {
@@ -56,8 +72,8 @@
   --va-scroll-thumb: #334155;
 }
 
-.teal.dark,
-.teal .dark {
+.green.dark,
+.green .dark {
   --va-accent:       #39d0c3;
   --va-accent-soft:  #2bb6aa;
   --va-bg:           #0b1214;
@@ -71,6 +87,23 @@
   --va-search-bg:    #121c21;
   --va-item-hover:   #122126;
   --va-scroll-thumb: #2b3b40;
+}
+
+.red.dark,
+.red .dark {
+  --va-accent:       #FF6B6B;
+  --va-accent-soft:  #FFA5A5;
+  --va-bg:           #1a0b0b;
+  --va-panel:        #1f1010;
+  --va-line:         #3d1e1e;
+  --va-txt:          #f1e7e7;
+  --va-muted:        #bba6a6;
+  --va-sidebar-1:    #dc2626;
+  --va-sidebar-2:    #991b1b;
+  --va-sidebar-text: #f9e7e7;
+  --va-search-bg:    #2a1515;
+  --va-item-hover:   #3d2222;
+  --va-scroll-thumb: #5c3838;
 }
 
 /* Page entry animations */
@@ -144,10 +177,7 @@ body {
   --ocean-success:      #2ea043;
   --ocean-warning:      #f0883e;
   --ocean-error:        #da3633;
-}
-
-
-/* ─────────────────────────────────────────────
+}/* ─────────────────────────────────────────────
    Semantic dark-mode layer — applied via
    @layer utilities so Tailwind dark: variants
    take precedence when used inline.

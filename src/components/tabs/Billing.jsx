@@ -78,8 +78,8 @@ export default function Billing({ clients, tasks, timeEntries, formatCurrency, u
       doc.text(entry.description.substring(0, 50), 20, yPos);
       const amount = +(entry.duration * data.rate).toFixed(2);
       doc.text(entry.duration.toFixed(2) + "h", 120, yPos);
-      doc.text(`${data.currency} ${data.rate}`, 150, yPos);
-      doc.text(`${data.currency} ${amount.toFixed(2)}`, 180, yPos);
+      doc.text(`${data.rate}${data.currency === "USD" ? "$" : data.currency}`, 150, yPos);
+      doc.text(`${data.total.toFixed(2)}${data.currency === "USD" ? "$" : data.currency}`, 180, yPos);
       yPos += 7;
     });
 
@@ -90,10 +90,10 @@ export default function Billing({ clients, tasks, timeEntries, formatCurrency, u
     doc.text(data.hours.toFixed(2) + "h", 140, yPos);
     yPos += 7;
     doc.text("Rate:", 110, yPos);
-    doc.text(`${data.currency} ${data.rate}`, 140, yPos);
+    doc.text(`${data.rate}${data.currency === "USD" ? "$" : data.currency}`, 140, yPos);
     yPos += 7;
     doc.text("Total Amount:", 110, yPos);
-    doc.text(`${data.currency} ${data.total.toFixed(2)}`, 160, yPos);
+    doc.text(`${data.total.toFixed(2)}${data.currency === "USD" ? "$" : data.currency}`, 160, yPos);
 
     if (invoiceNotes) {
       yPos += 12;

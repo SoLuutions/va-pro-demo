@@ -88,10 +88,14 @@ export default function ShaderBackground({ theme }) {
     animationId = requestAnimationFrame(animate);
 
     function getThemeColors(currentTheme) {
-      if (currentTheme === "teal") {
+      if (currentTheme === "green") {
         return { color1: tealLight1, color2: tealLight2 };
-      } else if (currentTheme === "teal-dark") {
+      } else if (currentTheme === "green-dark") {
         return { color1: tealDark1, color2: tealDark2 };
+      } else if (currentTheme === "red") {
+        return { color1: new THREE.Color("#fee2e2"), color2: new THREE.Color("#fef7f7") };
+      } else if (currentTheme === "red-dark") {
+        return { color1: new THREE.Color("#7f1d1d"), color2: new THREE.Color("#1a0b0b") };
       } else if (currentTheme === "dark") {
         return { color1: blueDark1, color2: blueDark2 };
       } else {
@@ -123,14 +127,24 @@ export default function ShaderBackground({ theme }) {
     const blueLight2 = new THREE.Color("#eff6ff");
     const blueDark1 = new THREE.Color("#0f172a");
     const blueDark2 = new THREE.Color("#1e293b");
+    const redLight1 = new THREE.Color("#fee2e2");
+    const redLight2 = new THREE.Color("#fef7f7");
+    const redDark1 = new THREE.Color("#7f1d1d");
+    const redDark2 = new THREE.Color("#1a0b0b");
 
     let c1, c2;
-    if (theme === "teal") {
+    if (theme === "green") {
       c1 = tealLight1;
       c2 = tealLight2;
-    } else if (theme === "teal-dark") {
+    } else if (theme === "green-dark") {
       c1 = tealDark1;
       c2 = tealDark2;
+    } else if (theme === "red") {
+      c1 = redLight1;
+      c2 = redLight2;
+    } else if (theme === "red-dark") {
+      c1 = redDark1;
+      c2 = redDark2;
     } else if (theme === "dark") {
       c1 = blueDark1;
       c2 = blueDark2;

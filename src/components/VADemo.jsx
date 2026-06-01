@@ -399,15 +399,19 @@ const VADemo = () => {
     if (user?.id && isSupabaseConfigured()) {
       upsertUserDataKey(user.id, "va_pro_ui_settings", uiSettings);
     }
-    document.documentElement.classList.remove("dark", "teal");
+    document.documentElement.classList.remove("dark", "teal", "green", "red");
     
     const theme = uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue");
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
-    } else if (theme === "teal") {
-      document.documentElement.classList.add("teal");
-    } else if (theme === "teal-dark") {
-      document.documentElement.classList.add("teal", "dark");
+    } else if (theme === "green") {
+      document.documentElement.classList.add("green");
+    } else if (theme === "green-dark") {
+      document.documentElement.classList.add("green", "dark");
+    } else if (theme === "red") {
+      document.documentElement.classList.add("red");
+    } else if (theme === "red-dark") {
+      document.documentElement.classList.add("red", "dark");
     }
   }, [uiSettings, user?.id]);
 

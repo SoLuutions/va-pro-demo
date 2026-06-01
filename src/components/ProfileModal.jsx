@@ -105,7 +105,7 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
                 value={uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue")}
                 onChange={(e) => {
                   const val = e.target.value;
-                  const isDark = val === "dark" || val === "teal-dark";
+                  const isDark = val === "dark" || val === "green-dark" || val === "red-dark";
                   onUpdateUiSettings({
                     ...uiSettings,
                     theme: val,
@@ -114,10 +114,12 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
                 }}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
               >
-                <option value="blue">Classic Blue Pro</option>
-                <option value="dark">Ocean Dark Mode</option>
-                <option value="teal">WhatsApp Teal</option>
-                <option value="teal-dark">WhatsApp Midnight (Dark)</option>
+                <option value="blue">Classic Blue</option>
+                <option value="dark">Ocean Dark</option>
+                <option value="green">Green Theme</option>
+                <option value="green-dark">Green Dark</option>
+                <option value="red">Red Theme</option>
+                <option value="red-dark">Red Dark</option>
               </select>
             </div>
 
