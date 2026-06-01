@@ -24,6 +24,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
       setFormData({
         ...client,
         projects: Array.isArray(client.projects) ? client.projects.join(", ") : "",
+        timeSlots: Array.isArray(client.timeSlots) ? client.timeSlots : [],
       });
     }
   }, [client]);
@@ -249,57 +250,57 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Working Time Slots
               </label>
-              <div className="text-xs text-gray-500 mb-2">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Set the client's working hours (e.g., 4:00 AM to 3:00 PM)
               </div>
-              <div className="text-xs text-blue-600 mb-3">
+              <div className="text-xs text-blue-600 dark:text-blue-400 mb-3">
                 Times will be converted to GMT+8 (Philippine time) for your schedule
               </div>
               
               <div className="space-y-3">
-                {formData.timeSlots.map((slot, index) => (
-                  <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                {formData.timeSlots && formData.timeSlots.map((slot, index) => (
+                  <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="flex-1 grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Start Time</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Start Time</label>
                         <input
                           type="time"
-                          value={slot.start}
+                          value={slot.start || ""}
                           onChange={(e) => {
                             const newSlots = [...formData.timeSlots];
                             newSlots[index].start = e.target.value;
                             setFormData({ ...formData, timeSlots: newSlots });
                           }}
-                          className="w-full px-2 py-1 border rounded text-sm"
+                          className="w-full px-2 py-1 border rounded text-sm bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">End Time</label>
+                        <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">End Time</label>
                         <input
                           type="time"
-                          value={slot.end}
+                          value={slot.end || ""}
                           onChange={(e) => {
                             const newSlots = [...formData.timeSlots];
                             newSlots[index].end = e.target.value;
                             setFormData({ ...formData, timeSlots: newSlots });
                           }}
-                          className="w-full px-2 py-1 border rounded text-sm"
+                          className="w-full px-2 py-1 border rounded text-sm bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
                         />
                       </div>
                     </div>
                     <div className="flex-1">
-                      <label className="block text-xs text-gray-600 mb-1">Timezone</label>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Timezone</label>
                       <select
-                        value={slot.tz}
+                        value={slot.tz || "Asia/Manila"}
                         onChange={(e) => {
                           const newSlots = [...formData.timeSlots];
                           newSlots[index].tz = e.target.value;
                           setFormData({ ...formData, timeSlots: newSlots });
                         }}
-                        className="w-full px-2 py-1 border rounded text-sm"
+                        className="w-full px-2 py-1 border rounded text-sm bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
                       >
                         <option value="Asia/Manila">Philippine Time (GMT+8)</option>
                         <option value="America/New_York">New York (EST/EDT)</option>
@@ -315,7 +316,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                         const newSlots = formData.timeSlots.filter((_, i) => i !== index);
                         setFormData({ ...formData, timeSlots: newSlots });
                       }}
-                      className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-sm"
+                      className="px-2 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded text-sm"
                     >
                       Remove
                     </button>
@@ -330,7 +331,7 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
                       timeSlots: [...formData.timeSlots, { start: "04:00", end: "15:00", tz: "Asia/Manila" }]
                     });
                   }}
-                  className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                  className="w-full px-3 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   + Add Time Slot
                 </button>

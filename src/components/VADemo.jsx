@@ -422,10 +422,12 @@ const VADemo = () => {
     if (user?.id && isSupabaseConfigured()) {
       upsertUserDataKey(user.id, "va_pro_ui_settings", uiSettings);
     }
-    document.documentElement.classList.remove("dark", "teal", "green", "red");
+    document.documentElement.classList.remove("dark", "blue", "teal", "green", "red");
     
     const theme = uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue");
-    if (theme === "dark") {
+    if (theme === "blue") {
+      document.documentElement.classList.add("blue");
+    } else if (theme === "dark") {
       document.documentElement.classList.add("dark");
     } else if (theme === "green") {
       document.documentElement.classList.add("green");
