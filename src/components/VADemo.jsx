@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   BarChart3, Users, CheckCircle, Clock, DollarSign, FileText, Maximize2, LogOut, Sun, Moon, Plus, ChevronsLeft, ChevronsRight,
 } from "lucide-react";
@@ -71,6 +71,7 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showFocusMode, setShowFocusMode] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
@@ -121,6 +122,85 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
   ];
 
   const activeTabName = tabs.find((t) => t.id === activeTab)?.name ?? "Dashboard";
+
+  const escapeForRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const buildSearchRegex = (query) => {
+    const trimmed = query.trim();
+    if (!trimmed) return null;
+
+    if (trimmed.startsWith("/") && trimmed.lastIndexOf("/") > 0) {
+      const lastSlash = trimmed.lastIndexOf("/");
+      const pattern = trimmed.slice(1, lastSlash);
+      const flags = trimmed.slice(lastSlash + 1) || "i";
+      try {
+        return new RegExp(pattern, flags);
+      } catch {
+        return new RegExp(escapeForRegex(trimmed), "i");
+      }
+    }
+
+    try {
+      return new RegExp(escapeForRegex(trimmed), "i");
+    } catch {
+      return null;
+    }
+  };
+
+  const searchResults = useMemo(() => {
+    const cleanedQuery = searchQuery.trim();
+    if (!cleanedQuery) return [];
+    const regex = buildSearchRegex(cleanedQuery);
+    if (!regex) return [];
+
+    const results = [];
+
+    tasks.forEach((task) => {
+      const clientName = getClientName(task.clientId);
+      if (
+        regex.test(task.title || "") ||
+        regex.test(task.description || "") ||
+        regex.test(task.project || "") ||
+        regex.test(clientName)
+      ) {
+        results.push({
+          type: "Task",
+          id: task.id,
+          title: task.title,
+          subtitle: `${clientName} • ${task.status}`,
+          action: () => {
+            setActiveTab("tasks");
+            setSelectedTask(task);
+            setShowNewTaskModal(true);
+          },
+        });
+      }
+    });
+
+    clients.forEach((client) => {
+      if (
+        regex.test(client.name || "") ||
+        regex.test(client.email || "") ||
+        regex.test(client.location || "") ||
+        regex.test(client.timezone || "") ||
+        regex.test(client.status || "")
+      ) {
+        results.push({
+          type: "Client",
+          id: client.id,
+          title: client.name,
+          subtitle: client.email || client.location || client.timezone || "Client",
+          action: () => {
+            setActiveTab("clients");
+            setSelectedClient(client);
+            setShowNewClientModal(true);
+          },
+        });
+      }
+    });
+
+    return results.slice(0, 10);
+  }, [searchQuery, tasks, clients, getClientName]);
 
   const shared = {
     clients, tasks, timeEntries,
@@ -226,12 +306,14 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
       {/* ── Main ── */}
       <main className={`va-main${isSidebarCollapsed ? " collapsed" : ""}`}>
         <div className="va-topbar">
-          <button
-            className="va-search"
-            onClick={() => setShowCommandPalette(true)}
-          >
-            Search {activeTabName.toLowerCase()}… (Ctrl+K)
-          </button>
+          <div className="va-search-wrapper">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search tasks, clients, regex supported (e.g. /invoice|acme/ )"
+              className="va-search-input"
+            />
+          </div>
 
           {!isOnline && (
             <div className="flex items-center space-x-1 px-3 py-1 bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400 text-xs font-semibold rounded-full animate-pulse border border-red-200 dark:border-red-900/50">
@@ -256,6 +338,27 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
             </button>
           </div>
         </div>
+
+        {searchResults.length > 0 && (
+          <div className="va-search-results">
+            {searchResults.map((result) => (
+              <button
+                key={`${result.type}-${result.id}`}
+                onClick={() => {
+                  result.action();
+                  setSearchQuery("");
+                }}
+                className="va-search-result-item"
+              >
+                <div className="va-search-result-title-bar">
+                  <span className="va-search-result-type">{result.type}</span>
+                  <span className="va-search-result-title">{result.title}</span>
+                </div>
+                <div className="va-search-result-subtitle">{result.subtitle}</div>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* ── Active timer bar ── */}
         {activeTimer && !showFocusMode && (
