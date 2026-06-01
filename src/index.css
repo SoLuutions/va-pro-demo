@@ -24,6 +24,22 @@
   --va-topbar-h:     72px;
 }
 
+.teal {
+  --va-accent:       #128C7E;
+  --va-accent-soft:  #1aa79b;
+  --va-bg:           #eef6f5;
+  --va-panel:        #ffffff;
+  --va-line:         #e5eaea;
+  --va-txt:          #111111;
+  --va-muted:        #6b7c85;
+  --va-sidebar-1:    #128C7E;
+  --va-sidebar-2:    #0f766b;
+  --va-sidebar-text: #ffffff;
+  --va-search-bg:    #f4f7f7;
+  --va-item-hover:   #f1f7f6;
+  --va-scroll-thumb: #cfd9d8;
+}
+
 .dark {
   --va-accent:       #60A5FA;
   --va-accent-soft:  #3B82F6;
@@ -39,6 +55,46 @@
   --va-item-hover:   #152238;
   --va-scroll-thumb: #334155;
 }
+
+.teal.dark,
+.teal .dark {
+  --va-accent:       #39d0c3;
+  --va-accent-soft:  #2bb6aa;
+  --va-bg:           #0b1214;
+  --va-panel:        #0f171a;
+  --va-line:         #1f2b31;
+  --va-txt:          #e7f1f1;
+  --va-muted:        #a6b5bb;
+  --va-sidebar-1:    #0f3f3a;
+  --va-sidebar-2:    #0b2f2b;
+  --va-sidebar-text: #e9f5f4;
+  --va-search-bg:    #121c21;
+  --va-item-hover:   #122126;
+  --va-scroll-thumb: #2b3b40;
+}
+
+/* Page entry animations */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-slide-up {
+  animation: fadeInSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-75  { animation-delay: 75ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+
 
 /* ─────────────────────────────────────────────
    Base
@@ -75,6 +131,21 @@ body {
   --ocean-warning:      #F0883E;
   --ocean-error:        #DA3633;
 }
+
+.teal.dark {
+  --ocean-bg:           #0b1214;
+  --ocean-surface:      #0f171a;
+  --ocean-secondary:    #122126;
+  --ocean-border:       #1f2b31;
+  --ocean-accent:       #39d0c3;
+  --ocean-accent-hover: #2bb6aa;
+  --ocean-text:         #e7f1f1;
+  --ocean-muted:        #a6b5bb;
+  --ocean-success:      #2ea043;
+  --ocean-warning:      #f0883e;
+  --ocean-error:        #da3633;
+}
+
 
 /* ─────────────────────────────────────────────
    Semantic dark-mode layer — applied via

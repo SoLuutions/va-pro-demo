@@ -32,6 +32,21 @@ export default function Dashboard({
   const completedTasksCount = tasks.filter((t) => t.status === "Completed").length;
   const activeTask = tasks.find((t) => t.id === activeTimer);
 
+  const last7Days = Array.from({ length: 7 }).map((_, i) => {
+    const day = DateTime.now().setZone("Asia/Manila").minus({ days: 6 - i });
+    const dayStr = day.toISODate();
+    const hours = timeEntries
+      .filter((e) => e.date === dayStr)
+      .reduce((sum, e) => sum + e.duration, 0);
+    return {
+      dateStr: dayStr,
+      label: day.toFormat("ccc"),
+      hours: hours
+    };
+  });
+
+  const maxHours = Math.max(8, ...last7Days.map((d) => d.hours));
+
   const getIconComponent = (iconName) => {
     const icons = {
       video: Video,
@@ -85,6 +100,30 @@ export default function Dashboard({
         <Card icon={<CheckCircle className="h-6 w-6 text-green-600" />} label="Active Tasks" value={activeTasksCount} color="bg-green-100" />
         <Card icon={<Users className="h-6 w-6 text-purple-600" />} label="Active Clients" value={clients.length} color="bg-purple-100" />
         <Card icon={<ListChecks className="h-6 w-6 text-indigo-600" />} label="Completed Tasks" value={completedTasksCount} color="bg-indigo-100" />
+      </div>
+
+      {/* --- WEEKLY PRODUCTIVITY CHART --- */}
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border p-6 animate-fade-in-slide-up">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center space-x-2">
+          <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <span>Weekly Productivity (Hours Worked)</span>
+        </h3>
+        <div className="flex items-end justify-between h-48 pt-4 px-2">
+          {last7Days.map((day, idx) => {
+            const percent = (day.hours / maxHours) * 100;
+            return (
+              <div key={idx} className="flex flex-col items-center flex-1 group">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-900 dark:bg-gray-800 text-white dark:text-gray-100 text-xs rounded py-1 px-2 mb-2 pointer-events-none transform -translate-y-1 shadow-md">
+                  {day.hours.toFixed(1)}h
+                </div>
+                <div className="w-full max-w-[32px] bg-blue-50 dark:bg-gray-800 rounded-t-lg transition-all duration-500 overflow-hidden relative" style={{ height: `${percent}%`, minHeight: day.hours > 0 ? "8px" : "2px" }}>
+                  <div className="absolute inset-0 bg-blue-600 dark:bg-blue-500 transform origin-bottom scale-y-100 group-hover:scale-y-[1.05] group-hover:brightness-110 transition-all duration-300" />
+                </div>
+                <span className="text-xs font-semibold text-gray-500 mt-3 dark:text-gray-400">{day.label}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

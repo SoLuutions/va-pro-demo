@@ -15,6 +15,7 @@ import { notificationsManager } from "../utils/notifications";
 import { saveToStorage, loadFromStorage } from "../utils/localStorage";
 import { fetchUserDataKey, upsertUserDataKey } from "../utils/cloudStorage";
 import { isSupabaseConfigured } from "../lib/supabase";
+import ShaderBackground from "./ShaderBackground";
 
 const Dashboard    = React.lazy(() => import("./tabs/Dashboard"));
 const Clients      = React.lazy(() => import("./tabs/Clients"));
@@ -64,6 +65,7 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
     setActiveTimer, handleBreak,
     stopTimerAndLog, markTaskAsDone,
     formatTime, getStatusColor, getPriorityColor, getClientName, formatCurrency,
+    isOnline,
   } = useAppData();
 
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -139,7 +141,7 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
 
   return (
     <div className="va-app">
-      <div className="va-bg" aria-hidden="true" />
+      <ShaderBackground theme={uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue")} />
 
       {/* ── Sidebar ── */}
       <aside className="va-sidebar">
@@ -199,6 +201,19 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
           >
             Search {activeTabName.toLowerCase()}… (Ctrl+K)
           </button>
+
+          {!isOnline && (
+            <div className="flex items-center space-x-1 px-3 py-1 bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400 text-xs font-semibold rounded-full animate-pulse border border-red-200 dark:border-red-900/50">
+              <span className="h-1.5 w-1.5 bg-red-500 rounded-full" />
+              <span>Offline</span>
+            </div>
+          )}
+          {isOnline && (
+            <div className="flex items-center space-x-1 px-3 py-1 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full border border-green-200 dark:border-green-900/30">
+              <span className="h-1.5 w-1.5 bg-green-500 rounded-full" />
+              <span>Synced</span>
+            </div>
+          )}
 
           <div className="va-top-actions">
             <button
@@ -384,10 +399,15 @@ const VADemo = () => {
     if (user?.id && isSupabaseConfigured()) {
       upsertUserDataKey(user.id, "va_pro_ui_settings", uiSettings);
     }
-    if (uiSettings.darkMode) {
+    document.documentElement.classList.remove("dark", "teal");
+    
+    const theme = uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue");
+    if (theme === "dark") {
       document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+    } else if (theme === "teal") {
+      document.documentElement.classList.add("teal");
+    } else if (theme === "teal-dark") {
+      document.documentElement.classList.add("teal", "dark");
     }
   }, [uiSettings, user?.id]);
 

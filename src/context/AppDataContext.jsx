@@ -433,6 +433,128 @@ export function AppDataProvider({ user, addToast, children }) {
     }
   };
 
+  // --- ONLINE/OFFLINE DETECTOR ---
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      addToast("Connection restored. Syncing with database...", "success");
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      addToast("You are offline. Working in local-only mode.", "warning");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // --- IDLE DETECTION & AUTO-PAUSE ---
+  const lastActivityRef = useRef(Date.now());
+  const IDLE_LIMIT_MS = 5 * 60 * 1000; // 5 minutes inactivity
+  useEffect(() => {
+    if (!activeTimer || isOnBreak) return;
+
+    const handleUserActivity = () => {
+      lastActivityRef.current = Date.now();
+    };
+
+    window.addEventListener("mousemove", handleUserActivity);
+    window.addEventListener("keydown", handleUserActivity);
+    window.addEventListener("click", handleUserActivity);
+    window.addEventListener("scroll", handleUserActivity);
+
+    lastActivityRef.current = Date.now();
+
+    const checkIdle = setInterval(() => {
+      const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+      if (timeSinceLastActivity >= IDLE_LIMIT_MS) {
+        handleBreak();
+        addToast("Timer auto-paused due to inactivity", "warning");
+        notificationsManager.showNotification("Timer Paused", {
+          body: "We auto-paused your timer because you've been inactive for 5 minutes.",
+          type: "warning"
+        });
+      }
+    }, 10000);
+
+    return () => {
+      window.removeEventListener("mousemove", handleUserActivity);
+      window.removeEventListener("keydown", handleUserActivity);
+      window.removeEventListener("click", handleUserActivity);
+      window.removeEventListener("scroll", handleUserActivity);
+      clearInterval(checkIdle);
+    };
+  }, [activeTimer, isOnBreak]);
+
+  // --- AUTOMATED DEMO DATA SEEDER ---
+  const seedDemoData = () => {
+    const today = DateTime.now().setZone("Asia/Manila");
+    const todayStr = today.toISODate();
+    const yesterdayStr = today.minus({ days: 1 }).toISODate();
+    const twoDaysAgoStr = today.minus({ days: 2 }).toISODate();
+    const threeDaysAgoStr = today.minus({ days: 3 }).toISODate();
+    const fourDaysAgoStr = today.minus({ days: 4 }).toISODate();
+
+    const seededClients = [
+      { id: 1, name: "Acme Corp", email: "contact@acme.com", rate: 15, currency: "USD", timezone: "America/New_York", dailyTimeLimitMin: 480 },
+      { id: 2, name: "Globex Inc", email: "billing@globex.com", rate: 20, currency: "EUR", timezone: "Europe/London", dailyTimeLimitMin: 240 },
+      { id: 3, name: "Nexus Tech", email: "support@nexustech.io", rate: 25, currency: "AUD", timezone: "Australia/Sydney", dailyTimeLimitMin: 300 }
+    ];
+
+    const seededTasks = [
+      { id: 101, title: "Inbox Management & Email Triage", clientId: 1, project: "Operations", priority: "High", status: "Completed", estimatedMin: 90, timeSpent: 1.5, dueDate: todayStr },
+      { id: 102, title: "Weekly Social Media Schedule", clientId: 1, project: "Marketing", priority: "Medium", status: "In Progress", estimatedMin: 180, timeSpent: 2.0, dueDate: today.plus({ days: 1 }).toISODate() },
+      { id: 103, title: "Monthly Financial Reconciliation", clientId: 2, project: "Finance", priority: "High", status: "To Do", estimatedMin: 240, timeSpent: 0, dueDate: today.plus({ days: 3 }).toISODate() },
+      { id: 104, title: "Customer Support Tickets", clientId: 2, project: "Operations", priority: "Low", status: "Completed", estimatedMin: 120, timeSpent: 4.0, dueDate: yesterdayStr },
+      { id: 105, title: "Technical SEO Audit", clientId: 3, project: "Marketing", priority: "High", status: "Review", estimatedMin: 300, timeSpent: 7.5, dueDate: todayStr },
+      { id: 106, title: "Design landing page mockup", clientId: 3, project: "Design", priority: "Medium", status: "To Do", estimatedMin: 180, timeSpent: 0, dueDate: today.plus({ days: 5 }).toISODate() }
+    ];
+
+    const seededTimeEntries = [
+      { id: 201, taskId: 101, clientId: 1, duration: 1.5, date: todayStr, billable: true, description: "Cleared backlog and triaged urgent client emails." },
+      { id: 202, taskId: 102, clientId: 1, duration: 2.0, date: todayStr, billable: true, description: "Drafted copy for Twitter and LinkedIn posts." },
+      { id: 203, taskId: 104, clientId: 2, duration: 2.5, date: yesterdayStr, billable: true, description: "Resolved Zendesk tickets and escalated technical issues." },
+      { id: 204, taskId: 105, clientId: 3, duration: 4.0, date: yesterdayStr, billable: true, description: "Crawled website and compiled errors in Google Sheets." },
+      { id: 205, taskId: 105, clientId: 3, duration: 3.5, date: twoDaysAgoStr, billable: true, description: "Drafted structural recommendation report." },
+      { id: 206, taskId: 102, clientId: 1, duration: 3.0, date: twoDaysAgoStr, billable: true, description: "Compiled image assets and social media graphics." },
+      { id: 207, taskId: 104, clientId: 2, duration: 1.5, date: threeDaysAgoStr, billable: true, description: "Followed up on open customer service issues." },
+      { id: 208, taskId: 101, clientId: 1, duration: 2.0, date: fourDaysAgoStr, billable: true, description: "Morning email check-in and task prioritizing." },
+      { id: 209, taskId: 105, clientId: 3, duration: 4.0, date: fourDaysAgoStr, billable: true, description: "Keywords research and analysis." }
+    ];
+
+    const seededQuickLinks = [
+      { id: 301, name: "Zoom Meeting", url: "https://zoom.us", icon: "video" },
+      { id: 302, name: "Slack Workspace", url: "https://slack.com", icon: "message" },
+      { id: 303, name: "Client Drive", url: "https://drive.google.com", icon: "folder" },
+      { id: 304, name: "Portfolio Website", url: "https://github.com", icon: "globe" }
+    ];
+
+    setClients(seededClients);
+    setTasks(seededTasks);
+    setTimeEntries(seededTimeEntries);
+    setQuickLinks(seededQuickLinks);
+
+    saveToStorage(STORAGE_KEYS.CLIENTS, seededClients);
+    saveToStorage(STORAGE_KEYS.TASKS, seededTasks);
+    saveToStorage(STORAGE_KEYS.TIME_ENTRIES, seededTimeEntries);
+    saveToStorage(STORAGE_KEYS.QUICK_LINKS, seededQuickLinks);
+
+    if (user?.id && isSupabaseConfigured()) {
+      upsertUserDataKey(user.id, STORAGE_KEYS.CLIENTS, seededClients);
+      upsertUserDataKey(user.id, STORAGE_KEYS.TASKS, seededTasks);
+      upsertUserDataKey(user.id, STORAGE_KEYS.TIME_ENTRIES, seededTimeEntries);
+      upsertUserDataKey(user.id, STORAGE_KEYS.QUICK_LINKS, seededQuickLinks);
+    }
+
+    addToast("Mock demo data seeded successfully! Try reloading tabs to see changes.", "success");
+  };
+
   const activeTask   = tasks.find((t) => t.id === activeTimer) || null;
   const activeClient = activeTask ? clients.find((c) => c.id === activeTask.clientId) : null;
 
@@ -473,6 +595,8 @@ export function AppDataProvider({ user, addToast, children }) {
         getTaskTimeRemaining,
         formatTimeRemaining,
         dataLoading,
+        seedDemoData,
+        isOnline,
       }}
     >
       {children}

@@ -22,16 +22,38 @@ export default function Tasks({
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [clientFilter, setClientFilter] = useState("All Clients");
   const [viewMode, setViewMode] = useState("list");
+  const [sortBy, setSortBy] = useState("dueDateAsc");
 
   const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
+    const list = tasks.filter((task) => {
       const matchesSearch = task.title.toLowerCase().includes(searchText.toLowerCase()) ||
         (task.description || '').toLowerCase().includes(searchText.toLowerCase());
       const matchesStatus = statusFilter === "All Status" || task.status === statusFilter;
       const matchesClient = clientFilter === "All Clients" || getClientName(task.clientId) === clientFilter;
       return matchesSearch && matchesStatus && matchesClient;
     });
-  }, [tasks, searchText, statusFilter, clientFilter, getClientName]);
+
+    // Apply Sorting
+    return [...list].sort((a, b) => {
+      if (sortBy === "dueDateAsc") {
+        return (a.dueDate || "").localeCompare(b.dueDate || "");
+      }
+      if (sortBy === "dueDateDesc") {
+        return (b.dueDate || "").localeCompare(a.dueDate || "");
+      }
+      if (sortBy === "priorityHigh") {
+        const priorityWeight = { High: 3, Medium: 2, Low: 1 };
+        return (priorityWeight[b.priority] || 0) - (priorityWeight[a.priority] || 0);
+      }
+      if (sortBy === "timeSpentDesc") {
+        return (b.timeSpent || 0) - (a.timeSpent || 0);
+      }
+      if (sortBy === "titleAsc") {
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      return 0;
+    });
+  }, [tasks, searchText, statusFilter, clientFilter, getClientName, sortBy]);
 
   const getCalendarWeeks = () => {
     const now = DateTime.now().setZone('Asia/Manila');
@@ -117,7 +139,7 @@ export default function Tasks({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
             >
               <option>All Status</option>
               <option>To Do</option>
@@ -128,12 +150,23 @@ export default function Tasks({
             <select
               value={clientFilter}
               onChange={(e) => setClientFilter(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
             >
               <option>All Clients</option>
               {clients.map((c) => (
                 <option key={c.id}>{c.name}</option>
               ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="dueDateAsc">Due: Soonest First</option>
+              <option value="dueDateDesc">Due: Latest First</option>
+              <option value="priorityHigh">Priority: High First</option>
+              <option value="timeSpentDesc">Hours: Most Logged</option>
+              <option value="titleAsc">Title: A-Z</option>
             </select>
           </div>
         </div>

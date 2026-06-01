@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { useAppData } from '../context/AppDataContext';
 
 export default function ProfileModal({ profile, onSave, onClose, uiSettings, onUpdateUiSettings }) {
+  const { seedDemoData } = useAppData();
   const [formData, setFormData] = useState({
     name: profile?.name || '',
     email: profile?.email || '',
@@ -94,7 +96,31 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
             />
           </div>
 
-          <div className="pt-2 space-y-3">
+          <div className="pt-2 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                UI Accent Theme
+              </label>
+              <select
+                value={uiSettings.theme || (uiSettings.darkMode ? "dark" : "blue")}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const isDark = val === "dark" || val === "teal-dark";
+                  onUpdateUiSettings({
+                    ...uiSettings,
+                    theme: val,
+                    darkMode: isDark
+                  });
+                }}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
+              >
+                <option value="blue">Classic Blue Pro</option>
+                <option value="dark">Ocean Dark Mode</option>
+                <option value="teal">WhatsApp Teal</option>
+                <option value="teal-dark">WhatsApp Midnight (Dark)</option>
+              </select>
+            </div>
+
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">NDA mode</p>
@@ -103,9 +129,26 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
               <button
                 type="button"
                 onClick={() => onUpdateUiSettings({ ...uiSettings, ndaMode: !uiSettings.ndaMode })}
-                className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-100 bg-white dark:bg-gray-800"
               >
                 {uiSettings.ndaMode ? 'On' : 'Off'}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between border-t pt-3 border-gray-100 dark:border-gray-800">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Seed Demo Data</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Populate the app with realistic mock clients and tasks</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  seedDemoData();
+                  onClose();
+                }}
+                className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium"
+              >
+                Seed Data
               </button>
             </div>
           </div>

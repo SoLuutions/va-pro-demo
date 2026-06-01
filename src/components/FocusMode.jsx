@@ -36,12 +36,23 @@ export default function FocusMode({
         setPomodoroTimeLeft(timeLeft);
 
         if (timeLeft === 0) {
-          if (pomodoroPhase === 'work') {
-            setPomodoroPhase('break');
+          const audio = new Audio(
+            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHG2m98Om"
+          );
+          audio.play().catch(() => {});
+
+          if (pomodoroPhase === "work") {
+            setPomodoroPhase("break");
             setPomodoroStartTime(null);
+            if (!isOnBreak) {
+              onBreak(); // Auto-pause billable time
+            }
           } else {
-            setPomodoroPhase('work');
+            setPomodoroPhase("work");
             setPomodoroStartTime(null);
+            if (isOnBreak) {
+              onBreak(); // Auto-resume billable time
+            }
           }
         }
       }, 1000);

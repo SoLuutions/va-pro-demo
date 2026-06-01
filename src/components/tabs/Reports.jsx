@@ -8,6 +8,70 @@ export default function Reports({ clients, tasks, timeEntries, userProfile = { n
   const [copied, setCopied] = useState(false);
   const [period, setPeriod] = useState("all");
 
+  const [webhookUrl, setWebhookUrl] = useState(() => localStorage.getItem("va_pro_eod_webhook_url") || "");
+  const [webhookType, setWebhookType] = useState(() => localStorage.getItem("va_pro_eod_webhook_type") || "slack");
+  const [showWebhookConfig, setShowWebhookConfig] = useState(false);
+  const [sendingWebhook, setSendingWebhook] = useState(false);
+
+  const saveWebhookUrl = (url) => {
+    setWebhookUrl(url);
+    localStorage.setItem("va_pro_eod_webhook_url", url);
+  };
+  const saveWebhookType = (type) => {
+    setWebhookType(type);
+    localStorage.setItem("va_pro_eod_webhook_type", type);
+  };
+
+  const handleSendWebhook = async () => {
+    if (!webhookUrl) return;
+    setSendingWebhook(true);
+
+    const userName = userProfile?.name || "User";
+    const dateTime = DateTime.fromISO(selectedDate).toFormat("MMMM d, yyyy");
+    const totalHoursWorked = dailyHours.toFixed(2);
+
+    let report = `*${userName} EOD Report*\n`;
+    report += `_${dateTime} - ${totalHoursWorked} hours spent working_\n\n`;
+
+    dailyClientBreakdown.forEach((clientData) => {
+      report += `*${clientData.clientName}*\n`;
+      clientData.entries.forEach((entry) => {
+        const task = entry.task;
+        const timeSpent = `\`${entry.duration.toFixed(2)}h\``;
+        report += `• *${task?.title || "Unknown Task"}* - ${timeSpent}\n`;
+        if (entry.description) report += `  _${entry.description}_\n`;
+        report += `\n`;
+      });
+    });
+
+    let payload = {};
+    if (webhookType === "slack") {
+      payload = { text: report };
+    } else if (webhookType === "discord") {
+      payload = { content: report };
+    } else {
+      payload = { report: report, date: selectedDate, hours: totalHoursWorked, user: userName };
+    }
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        alert("EOD Report dispatched via Webhook successfully!");
+      } else {
+        alert(`Webhook dispatch failed with status: ${response.status}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(`Webhook error: ${err.message}`);
+    } finally {
+      setSendingWebhook(false);
+    }
+  };
+
   // Improvement #4: Period-filtered entries for the summary cards
   const periodEntries = useMemo(() => {
     const now = DateTime.now().setZone("Asia/Manila");
@@ -165,34 +229,84 @@ export default function Reports({ clients, tasks, timeEntries, userProfile = { n
       </div>
 
       {/* Daily Shift Report */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b flex justify-between items-center">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border">
+        <div className="p-6 border-b flex flex-wrap gap-4 justify-between items-center">
           <div className="flex items-center space-x-3">
-            <FileText className="h-5 w-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Daily Shift Report</h3>
+            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Daily Shift Report</h3>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Calendar className="h-4 w-4 text-gray-500" />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-1 border rounded-lg text-sm"
+              className="px-3 py-1 border rounded-lg text-sm bg-white dark:bg-gray-800 dark:text-gray-100"
             />
             <button
               onClick={handleCopyEODReport}
               disabled={dailyEntries.length === 0}
-              className={`px-3 py-1 rounded-lg text-sm flex items-center space-x-1 ${
+              className={`px-3 py-1 rounded-lg text-sm flex items-center space-x-1 transition-transform hover:-translate-y-0.5 ${
                 dailyEntries.length === 0
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  ? "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700 text-white"
               }`}
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              <span>{copied ? "Copied!" : "Copy EOD Report"}</span>
+              <span>{copied ? "Copied!" : "Copy EOD"}</span>
+            </button>
+            <button
+              onClick={handleSendWebhook}
+              disabled={dailyEntries.length === 0 || !webhookUrl}
+              className={`px-3 py-1 rounded-lg text-sm flex items-center space-x-1 transition-transform hover:-translate-y-0.5 ${
+                dailyEntries.length === 0 || !webhookUrl
+                  ? "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed"
+                  : "bg-purple-600 hover:bg-purple-700 text-white"
+              }`}
+            >
+              <span>{sendingWebhook ? "Sending..." : "Send Webhook"}</span>
+            </button>
+            <button
+              onClick={() => setShowWebhookConfig(!showWebhookConfig)}
+              className="p-1.5 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800"
+              title="Webhook Settings"
+            >
+              ⚙️
             </button>
           </div>
         </div>
+
+        {/* Webhook Configuration Panel */}
+        {showWebhookConfig && (
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 border-b dark:border-gray-800 flex flex-col md:flex-row gap-4 items-end animate-fade-in-slide-up">
+            <div className="flex-1 w-full">
+              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                EOD Webhook URL (Slack, Discord, or Custom REST endpoint)
+              </label>
+              <input
+                type="url"
+                value={webhookUrl}
+                onChange={(e) => saveWebhookUrl(e.target.value)}
+                placeholder="https://hooks.slack.com/services/..."
+                className="w-full px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
+              />
+            </div>
+            <div className="w-full md:w-48">
+              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                Webhook Integration Type
+              </label>
+              <select
+                value={webhookType}
+                onChange={(e) => saveWebhookType(e.target.value)}
+                className="w-full px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
+              >
+                <option value="slack">Slack Incoming Webhook</option>
+                <option value="discord">Discord Webhook</option>
+                <option value="custom">Custom JSON POST</option>
+              </select>
+            </div>
+          </div>
+        )}
         <div className="p-6">
           {dailyEntries.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
