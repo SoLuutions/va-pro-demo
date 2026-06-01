@@ -156,7 +156,7 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
     const results = [];
 
     tasks.forEach((task) => {
-      const clientName = getClientName(task.clientId);
+      const clientName = getClientName(task.clientId) || "";
       if (
         regex.test(task.title || "") ||
         regex.test(task.description || "") ||
@@ -310,9 +310,38 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tasks, clients, regex supported (e.g. /invoice|acme/ )"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchResults.length > 0) {
+                  searchResults[0].action();
+                  setSearchQuery("");
+                }
+                if (e.key === "Escape") {
+                  setSearchQuery("");
+                }
+              }}
+              placeholder="Search tasks, clients, regex supported (e.g. /invoice|acme/)"
               className="va-search-input"
             />
+            {searchResults.length > 0 && (
+              <div className="va-search-results">
+                {searchResults.map((result) => (
+                  <button
+                    key={`${result.type}-${result.id}`}
+                    onClick={() => {
+                      result.action();
+                      setSearchQuery("");
+                    }}
+                    className="va-search-result-item"
+                  >
+                    <div className="va-search-result-title-bar">
+                      <span className="va-search-result-type">{result.type}</span>
+                      <span className="va-search-result-title">{result.title}</span>
+                    </div>
+                    <div className="va-search-result-subtitle">{result.subtitle}</div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {!isOnline && (
@@ -330,6 +359,16 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
 
           <div className="va-top-actions">
             <button
+              type="button"
+              className="va-portfolio-btn"
+              onClick={() => window.open("https://clarklindleysuan.com/", "_blank")}
+              title="Visit Portfolio"
+              aria-label="Visit Portfolio"
+            >
+              C
+            </button>
+            <button
+              type="button"
               className="va-icon-btn"
               onClick={() => setShowNewTaskModal(true)}
               title="New Task (Ctrl+N)"
@@ -338,27 +377,6 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
             </button>
           </div>
         </div>
-
-        {searchResults.length > 0 && (
-          <div className="va-search-results">
-            {searchResults.map((result) => (
-              <button
-                key={`${result.type}-${result.id}`}
-                onClick={() => {
-                  result.action();
-                  setSearchQuery("");
-                }}
-                className="va-search-result-item"
-              >
-                <div className="va-search-result-title-bar">
-                  <span className="va-search-result-type">{result.type}</span>
-                  <span className="va-search-result-title">{result.title}</span>
-                </div>
-                <div className="va-search-result-subtitle">{result.subtitle}</div>
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* ── Active timer bar ── */}
         {activeTimer && !showFocusMode && (
@@ -487,6 +505,7 @@ function AppShell({ uiSettings, setUiSettings, addToast, dismissToast, toasts })
         setShowNewTaskModal={setShowNewTaskModal}
         setShowNewClientModal={setShowNewClientModal}
         setActiveTab={setActiveTab}
+        setShowFocusMode={setShowFocusMode}
         handleStartStop={() => { if (activeTask) setActiveTimer(activeTask.id); }}
       />
     </div>
