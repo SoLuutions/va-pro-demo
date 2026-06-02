@@ -343,7 +343,7 @@ body {
   box-shadow: var(--va-shadow);
   z-index: 30;
   overflow: hidden;
-  transition: background 0.6s ease;
+  transition: width 0.3s ease, background 0.6s ease;
 }
 
 .va-brand {
@@ -515,7 +515,7 @@ body {
   backdrop-filter: blur(8px);
   position: relative;
   z-index: 1;
-  transition: background 0.6s ease;
+  transition: margin-left 0.3s ease, background 0.6s ease;
 }
 
 .dark .va-main {
