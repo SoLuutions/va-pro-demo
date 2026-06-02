@@ -459,7 +459,10 @@ body {
 }
 
 .va-sidebar.collapsed .va-brand span,
-.va-sidebar.collapsed .va-profile-meta,
+.va-sidebar.collapsed .va-profile-meta {
+  display: none;
+}
+
 .va-sidebar.collapsed .va-nav-item {
   width: 44px;
   justify-content: center;
@@ -478,6 +481,9 @@ body {
 
 .va-sidebar.collapsed .va-sidebar-footer {
   justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
 .va-sidebar.collapsed .va-nav-item.active {
