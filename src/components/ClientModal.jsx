@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { validateField, sanitizeInput } from "../utils/sanitize";
+import { useAppData } from "../context/AppDataContext";
 
 export default function ClientModal({ client, clients, setClients, onClose }) {
+  const { addToast } = useAppData();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -32,11 +35,49 @@ export default function ClientModal({ client, clients, setClients, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Validate inputs
+    const nameVal = validateField('name', formData.name);
+    if (!nameVal.valid) {
+      addToast(nameVal.error, "error");
+      return;
+    }
+
+    const emailVal = validateField('email', formData.email);
+    if (!emailVal.valid) {
+      addToast(emailVal.error, "error");
+      return;
+    }
+
+    const rateVal = validateField('amount', formData.rate);
+    if (!rateVal.valid) {
+      addToast("Hourly rate must be a positive number", "error");
+      return;
+    }
+
+    if (formData.dailyTimeLimitMin !== null && formData.dailyTimeLimitMin !== undefined && formData.dailyTimeLimitMin !== "") {
+      const dailyLimit = parseInt(formData.dailyTimeLimitMin);
+      if (isNaN(dailyLimit) || dailyLimit < 0) {
+        addToast("Daily time limit must be a positive number of minutes", "error");
+        return;
+      }
+    }
+
+    // Sanitize everything to prevent XSS
+    const sanitizedData = {
+      ...formData,
+      name: nameVal.value,
+      email: emailVal.value,
+      phone: sanitizeInput(formData.phone),
+      location: sanitizeInput(formData.location),
+      notes: sanitizeInput(formData.notes),
+      projects: String(formData.projects).split(",").map(p => sanitizeInput(p.trim())).filter(Boolean),
+      rate: rateVal.value,
+      dailyTimeLimitMin: formData.dailyTimeLimitMin ? parseInt(formData.dailyTimeLimitMin) : null,
+    };
+
     const newClient = {
       id: client ? client.id : Date.now(),
-      ...formData,
-      rate: parseFloat(formData.rate) || 0,
-      projects: formData.projects.split(",").map(p => p.trim()).filter(Boolean),
+      ...sanitizedData,
       totalHours: client?.totalHours || 0,
       lastActivity: client?.lastActivity || "Just now",
     };

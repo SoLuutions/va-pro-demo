@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import STORAGE_KEYS, { saveToStorage, loadFromStorage } from "../utils/localStorage";
 import { supabase, isSupabaseConfigured, mapSupabaseUser } from "../lib/supabase";
 import { formatAuthError, formatLoginError, isDuplicateSignup } from "../utils/authErrors";
+import { fetchWithRetry } from "../utils/retry";
 
 const AuthContext = createContext(null);
 
@@ -63,13 +64,14 @@ export const AuthProvider = ({ children }) => {
       (u) => u.email === email && (u.password === hashed || u.password === password)
     );
     if (existingUser) {
-      if (existingUser.password === password) {
-        const migrated = users.map((u) =>
-          u.email === email ? { ...u, password: hashed } : u
-        );
-        saveToStorage(STORAGE_KEYS.REGISTERED_USERS, migrated);
-      }
-      setUser({ id: existingUser.email, email: existingUser.email, name: existingUser.name });
+      const uuid = existingUser.id || self.crypto.randomUUID();
+      // Migrate password and ensure UUID is stored
+      const migrated = users.map((u) =>
+        u.email === email ? { ...u, id: uuid, password: hashed } : u
+      );
+      saveToStorage(STORAGE_KEYS.REGISTERED_USERS, migrated);
+
+      setUser({ id: uuid, email: existingUser.email, name: existingUser.name });
       return { success: true };
     }
     return { success: false, error: formatLoginError("Invalid email or password") };
@@ -82,9 +84,10 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: formatAuthError("already registered") };
     }
     const hashed = await hashPassword(password);
-    users.push({ name, email: normalizedEmail, password: hashed });
+    const uuid = self.crypto.randomUUID();
+    users.push({ id: uuid, name, email: normalizedEmail, password: hashed });
     saveToStorage(STORAGE_KEYS.REGISTERED_USERS, users);
-    setUser({ id: normalizedEmail, email: normalizedEmail, name });
+    setUser({ id: uuid, email: normalizedEmail, name });
     return { success: true };
   };
 
@@ -128,7 +131,7 @@ export const AuthProvider = ({ children }) => {
 
     // Fallback if confirmation is still required: server auto-confirms (npm run dev)
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetchWithRetry("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), email: trimmedEmail, password }),

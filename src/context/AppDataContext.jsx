@@ -34,7 +34,7 @@ function useDebouncedCloudSave(userId, key, value, enabled) {
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       saveToStorage(key, value);
-      if (userId && isSupabaseConfigured()) {
+      if (userId) {
         upsertUserDataKey(userId, key, value);
       }
     }, SAVE_DEBOUNCE_MS);
@@ -57,8 +57,8 @@ export function AppDataProvider({ user, addToast, children }) {
       avatarUrl: "",
     })
   );
-  const [dataLoading, setDataLoading] = useState(Boolean(user?.id && isSupabaseConfigured()));
-  const [hydrated, setHydrated] = useState(!isSupabaseConfigured() || !user?.id);
+  const [dataLoading, setDataLoading] = useState(Boolean(user?.id));
+  const [hydrated, setHydrated] = useState(!user?.id);
 
   const [activeTimer, setActiveTimer] = useState(null);
   const [timerStartedAt, setTimerStartedAt] = useState(null);
@@ -72,7 +72,7 @@ export function AppDataProvider({ user, addToast, children }) {
   const timeEntriesRef = useRef([]);
 
   useEffect(() => {
-    if (!user?.id || !isSupabaseConfigured()) {
+    if (!user?.id) {
       setHydrated(true);
       setDataLoading(false);
       return;
@@ -198,7 +198,7 @@ export function AppDataProvider({ user, addToast, children }) {
       : null;
 
     saveToStorage(STORAGE_KEYS.ACTIVE_TIMER, timerData);
-    if (user?.id && isSupabaseConfigured() && timerData) {
+    if (user?.id && timerData) {
       upsertUserDataKey(user.id, STORAGE_KEYS.ACTIVE_TIMER, timerData);
     }
   }, [activeTimer, timerStartedAt, totalBreakTime, hydrated, user?.id]);

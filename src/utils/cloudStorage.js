@@ -1,46 +1,84 @@
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
 export async function fetchUserDataKey(userId, key, defaultValue = null) {
-  if (!isSupabaseConfigured() || !userId) return defaultValue;
+  if (!userId) return defaultValue;
 
-  const { data, error } = await supabase
-    .from("user_app_data")
-    .select("data")
-    .eq("user_id", userId)
-    .eq("key", key)
-    .maybeSingle();
+  if (isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from("user_app_data")
+        .select("data")
+        .eq("user_id", userId)
+        .eq("key", key)
+        .maybeSingle();
 
-  if (error) {
-    console.error(`Failed to load ${key}:`, error.message);
-    return defaultValue;
+      if (!error) {
+        return data?.data ?? defaultValue;
+      }
+      console.warn(`[CloudStorage] Supabase error loading key "${key}":`, error.message);
+    } catch (e) {
+      console.warn(`[CloudStorage] Supabase exception loading key "${key}":`, e);
+    }
   }
 
-  return data?.data ?? defaultValue;
+  // Fallback: load from local Express server API
+  try {
+    const response = await fetch(`/api/data/${userId}/${key}`);
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success) {
+        return result.data ?? defaultValue;
+      }
+    }
+  } catch (err) {
+    console.error(`[CloudStorage] Local server fallback failed loading key "${key}":`, err);
+  }
+
+  return defaultValue;
 }
 
 export async function upsertUserDataKey(userId, key, value) {
-  if (!isSupabaseConfigured() || !userId) return false;
+  if (!userId) return false;
 
-  const { error } = await supabase.from("user_app_data").upsert(
-    {
-      user_id: userId,
-      key,
-      data: value,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,key" }
-  );
+  if (isSupabaseConfigured()) {
+    try {
+      const { error } = await supabase.from("user_app_data").upsert(
+        {
+          user_id: userId,
+          key,
+          data: value,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,key" }
+      );
 
-  if (error) {
-    console.error(`Failed to save ${key}:`, error.message);
-    return false;
+      if (!error) return true;
+      console.warn(`[CloudStorage] Supabase error saving key "${key}":`, error.message);
+    } catch (e) {
+      console.warn(`[CloudStorage] Supabase exception saving key "${key}":`, e);
+    }
   }
 
-  return true;
+  // Fallback: save to local Express server API
+  try {
+    const response = await fetch(`/api/data/${userId}/${key}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: value }),
+    });
+    if (response.ok) {
+      const result = await response.json();
+      return result.success;
+    }
+  } catch (err) {
+    console.error(`[CloudStorage] Local server fallback failed saving key "${key}":`, err);
+  }
+
+  return false;
 }
 
 export async function fetchAllUserData(userId, keysWithDefaults) {
-  if (!isSupabaseConfigured() || !userId) {
+  if (!userId) {
     return Object.fromEntries(
       Object.entries(keysWithDefaults).map(([key, def]) => [key, def])
     );

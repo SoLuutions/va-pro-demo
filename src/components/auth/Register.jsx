@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { UserPlus } from "lucide-react";
 import AuthAlert from "./AuthAlert";
 import { formatValidationError } from "../../utils/authErrors";
+import { validateField } from "../../utils/sanitize";
 
 export default function Register({ onRegister, onSwitchToLogin }) {
   const [name, setName] = useState("");
@@ -32,9 +33,28 @@ export default function Register({ onRegister, onSwitchToLogin }) {
       return;
     }
 
+    // Validate and sanitize inputs
+    const nameValidation = validateField("name", name);
+    if (!nameValidation.valid) {
+      setError({ title: "Invalid name", message: nameValidation.error });
+      return;
+    }
+
+    const emailValidation = validateField("email", email);
+    if (!emailValidation.valid) {
+      setError({ title: "Invalid email", message: emailValidation.error });
+      return;
+    }
+
+    const passwordValidation = validateField("password", password);
+    if (!passwordValidation.valid) {
+      setError({ title: "Invalid password", message: passwordValidation.error });
+      return;
+    }
+
     setLoading(true);
     try {
-      const result = await onRegister(name, email, password);
+      const result = await onRegister(nameValidation.value, emailValidation.value, password);
       if (!result.success) {
         setError(
           typeof result.error === "string"

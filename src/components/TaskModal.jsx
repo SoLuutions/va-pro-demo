@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { X, FolderOpen } from "lucide-react";
+import { validateField, sanitizeInput, validateNewlinedUrls } from "../utils/sanitize";
+import { useAppData } from "../context/AppDataContext";
 
 export default function TaskModal({ task, tasks, setTasks, timeEntries, setTimeEntries, clients, onClose, templates = [], onSaveTemplate, onApplyTemplate }) {
+  const { addToast } = useAppData();
   if (clients.length === 0) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -51,9 +54,69 @@ export default function TaskModal({ task, tasks, setTasks, timeEntries, setTimeE
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // 1. Validate title
+    const titleVal = validateField('name', formData.title);
+    if (!titleVal.valid || titleVal.value.length < 2) {
+      addToast("Task title must be at least 2 characters", "error");
+      return;
+    }
+
+    // 2. Validate description
+    const descVal = validateField('description', formData.description);
+    if (!descVal.valid) {
+      addToast(descVal.error, "error");
+      return;
+    }
+
+    // 3. Validate estimated minutes
+    let estMin = null;
+    if (formData.estimatedMin !== null && formData.estimatedMin !== undefined && formData.estimatedMin !== "") {
+      estMin = parseInt(formData.estimatedMin);
+      if (isNaN(estMin) || estMin < 0) {
+        addToast("Estimated time must be a positive number", "error");
+        return;
+      }
+    }
+
+    // 4. Validate manual logged hours
+    let manualLoggedHours = 0;
+    if (taskType === "Completed") {
+      const loggedVal = validateField('amount', formData.loggedHours);
+      if (!loggedVal.valid) {
+        addToast("Logged hours must be a positive number", "error");
+        return;
+      }
+      manualLoggedHours = loggedVal.value;
+    }
+
+    // 5. Validate file links
+    const filesVal = validateNewlinedUrls(formData.fileLinks);
+    if (!filesVal.valid) {
+      addToast(filesVal.error, "error");
+      return;
+    }
+
+    // 6. Validate output links
+    const outputsVal = validateNewlinedUrls(formData.outputLinks);
+    if (!outputsVal.valid) {
+      addToast(outputsVal.error, "error");
+      return;
+    }
+
+    // Sanitize data
+    const sanitizedData = {
+      ...formData,
+      title: titleVal.value,
+      description: descVal.value,
+      project: sanitizeInput(formData.project),
+      estimatedMin: estMin,
+      fileLinks: filesVal.value,
+      outputLinks: outputsVal.value,
+    };
+
     const newTask = {
       id: task ? task.id : Date.now(),
-      ...formData,
+      ...sanitizedData,
       clientId: parseInt(formData.clientId),
       timeSpent: task?.timeSpent || 0,
       attachments: task?.attachments || [],
@@ -62,7 +125,7 @@ export default function TaskModal({ task, tasks, setTasks, timeEntries, setTimeE
 
     if (taskType === "Completed") {
       newTask.status = "Completed";
-      newTask.timeSpent = parseFloat(formData.loggedHours) || 0;
+      newTask.timeSpent = manualLoggedHours;
       newTask.billable = true; // defaulting to true for completed
 
       const newEntry = {
