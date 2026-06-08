@@ -455,43 +455,50 @@ body {
 }
 
 .va-sidebar.collapsed {
-  width: 72px;
+  width: 72px !important;
+  padding: 24px 14px !important;
+}
+
+.va-sidebar.collapsed .va-brand {
+  justify-content: center !important;
+  gap: 0 !important;
 }
 
 .va-sidebar.collapsed .va-brand span,
 .va-sidebar.collapsed .va-profile-meta {
-  display: none;
+  display: none !important;
 }
 
 .va-sidebar.collapsed .va-nav-item {
-  width: 44px;
-  justify-content: center;
-  margin: 0 auto;
-  padding: 12px 0;
-  border-radius: 14px;
+  width: 44px !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  padding: 12px 0 !important;
+  border-radius: 14px !important;
 }
 
 .va-sidebar.collapsed .va-nav-item span {
-  display: none;
+  display: none !important;
 }
 
 .va-sidebar.collapsed .va-profile {
-  justify-content: center;
+  justify-content: center !important;
+  padding: 8px !important;
 }
 
 .va-sidebar.collapsed .va-sidebar-footer {
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-  flex-wrap: nowrap;
+  justify-content: center !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
 }
 
 .va-sidebar.collapsed .va-nav-item.active {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.22) !important;
 }
 
 .va-main.collapsed {
-  margin-left: 72px;
+  margin-left: 72px !important;
 }
 
 .va-icon-btn-sidebar {
