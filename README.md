@@ -1,98 +1,113 @@
-# VA Pro Demo
+# VA Pro
 
-A comprehensive productivity and time-tracking SaaS application designed specifically for Philippine Virtual Assistants (VAs). This platform helps VAs manage clients, track billable hours, handle tasks, and generate professional reports and invoices.
+A full-featured productivity and time-tracking SaaS application built for Philippine Virtual Assistants (VAs). Track time, manage clients, generate invoices, and stay in focus — all from one premium-quality web app.
 
-## Project Overview
+---
 
-VA Pro is a full-featured productivity platform that enables virtual assistants to:
-- Manage multiple clients and their information
-- Create and track tasks with time estimates
-- Monitor billable hours with an integrated timer
-- Generate detailed reports and invoices
-- Work in focus mode for distraction-free productivity
-- Maintain user profiles with timezone support
+## Features
 
-## Key Features & Capabilities
+### Landing Page
+- Public marketing page shown to first-time visitors
+- Highlights features, stats, and CTAs before requiring sign-up
 
-### 1. Client Management
-- Add, edit, and manage client information
-- Store client contact details and hourly rates
-- Track active projects per client
-- View client-specific task lists and billing history
+### Authentication
+- **Supabase Auth** (email/password) when a Supabase project is configured
+- **Local fallback** (localStorage + SHA-256 hashed passwords) when Supabase is not configured — works entirely offline
+- Register, Login, and Logout flows with friendly error messages
 
-### 2. Task Management
-- Create tasks with descriptions and time estimates
-- Assign tasks to specific clients
-- Set task priorities and deadlines
-- Track task status (To Do, In Progress, Completed)
-- Time window restrictions to prevent tracking outside designated hours
-
-### 3. Time Tracking
-- Start/stop timers for individual tasks
-- Automatic time entry creation
-- Break time tracking (excluded from billable hours)
-- Real-time timer display in all views
-- Persistent timer state (survives page refreshes)
-- Time window validation (8 AM - 8 PM Manila time by default)
-
-### 4. Dashboard
-- Overview of active timers and current tasks
-- Quick stats: total clients, active tasks, hours tracked
+### Dashboard
+- Overview stats: total clients, active tasks, hours tracked today/this week
 - Recent activity feed
-- Quick access to frequently used actions
-- Customizable quick links
+- Quick-access links (customisable)
+- Live active-timer display
 
-### 5. Reports & Analytics
-- Time-based reports (daily, weekly, monthly)
-- Client-specific time breakdowns
-- Task completion analytics
-- Exportable reports in PDF format
-- Visual charts and graphs
+### Client Management
+- Add, edit, and archive client profiles
+- Store: name, email, location, timezone, hourly rate, status
+- Per-client task list and billing history
+- NDA mode — hides real names across the entire UI
 
-### 6. Billing & Invoicing
-- Generate professional invoices
-- Calculate billable hours automatically
-- Track paid vs. unpaid invoices
-- Client billing history
-- Customizable invoice templates
+### Task Management
+- Create tasks with title, description, priority, deadline, and time estimate
+- Assign tasks to clients and track status: `To Do → In Progress → Done`
+- Task templates for repeatable work
+- Regex-powered global search across tasks and clients (e.g. `/invoice|acme/i`)
 
-### 7. Focus Mode
-- Distraction-free fullscreen workspace
-- Timer and task details always visible
-- Minimalist interface for deep work
-- Quick task switching
+### Time Tracking
+- Start / stop timer per task (one active timer at a time)
+- Break tracking — pauses billable time without stopping the session
+- Automatic time-entry creation on stop
+- Timer persists across page refreshes via `localStorage`
+- Time-window validation (configurable; default 8 AM – 8 PM Manila time)
+- Overtime indicator when task exceeds its estimated time
 
-### 8. User Profile Management
-- Customizable user profiles
-- Timezone settings
-- Authentication system with login/register
-- Profile avatar support
+### Focus Mode
+- Fullscreen, distraction-free workspace (`Esc` to exit)
+- Shows task name, client, live timer, estimated time remaining, and break controls
+
+### Reports
+- Daily, weekly, and monthly time breakdowns
+- Per-client filtering
+- Export to PDF with one click (`jsPDF`)
+
+### Billing & Invoicing
+- Auto-calculate billable amounts from time entries × hourly rate
+- Generate professional invoices per client
+- Track paid / unpaid status
+
+### Command Palette (`Ctrl+K`)
+- Search and jump between views
+- Create tasks or clients instantly
+- Toggle active timer from anywhere
+
+### Themes & Appearance
+Six runtime-switchable themes (toggle button in sidebar):
+
+| Theme | Mode |
+|-------|------|
+| Green | Light |
+| Green Dark | Dark |
+| Blue | Light |
+| Dark | Dark |
+| Red | Light |
+| Red Dark | Dark |
+
+Animated WebGL shader background (Three.js) adapts per theme.
+
+### Profile & Settings
+- Display name, avatar URL, timezone
+- NDA mode toggle
+- Theme preference persisted in Supabase or `localStorage`
+
+### Sync & Offline
+- When Supabase is configured: cloud sync for user data and settings
+- When offline or unconfigured: seamless `localStorage` fallback
+- Online/offline status indicator in the top bar
+
+---
 
 ## Technology Stack
 
 ### Frontend
-- **React 18** - UI framework
-- **Vite** - Build tool and dev server
-- **Tailwind CSS** - Utility-first styling
-- **Lucide React** - Icon library
-- **Luxon** - Timezone and date handling
-- **jsPDF** - PDF report generation
+- **React 18** — UI framework
+- **Vite 5** — build tool and dev server with HMR
+- **Tailwind CSS 3** — utility-first styling
+- **Lucide React** — icon library
+- **Luxon** — timezone-aware date/time handling
+- **jsPDF** — client-side PDF generation
+- **Three.js** — animated WebGL shader background
 
 ### Backend
-- **Express.js** - API server
-- **In-memory storage** - Ephemeral server-side storage (no external DB)
-- **Node.js** - Runtime environment
+- **Express 5** — API server
+- **Node.js 20+** — runtime
+- **express-rate-limit** — API rate limiting
+- **In-memory storage** — ephemeral server-side state (resets on restart)
 
-## Storage Architecture
+### Auth & Storage
+- **Supabase** (`@supabase/supabase-js`) — optional cloud auth and data sync
+- **localStorage** — client-side persistence and offline fallback
 
-### In-memory (Current Implementation)
-- Per-user key-value storage in server memory
-- Real-time timer state and simple data
-- Fast operations
-- Ephemeral: data resets on server restarts
-
-### Future Database Option
-This demo can be extended to use Redis or PostgreSQL later. That would require adding a proper data layer and environment variables.
+---
 
 ## Quick Start
 
@@ -101,25 +116,42 @@ This demo can be extended to use Redis or PostgreSQL later. That would require a
 
 ### Installation
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-2. Environment variables (optional):
-   Create a `.env` file if needed for `PORT`. No DB vars are required.
+### Environment Variables (optional)
 
-3. Start the development server:
-   ```bash
-   npm start
-   ```
-   This runs both the Express backend (port 3000) and Vite frontend (port 5000) simultaneously.
+Create a `.env` file (see `.env.example`):
 
-### Alternative Commands
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+PORT=3000
+```
 
-- **Dev (backend + frontend)**: `npm run dev`
-- **Production build**: `npm run build`
-- **Start server**: `npm start`
+> **Without Supabase**, the app runs entirely in the browser using `localStorage`. No external services required.
+
+### Run in Development
+
+```bash
+npm run dev
+```
+
+Starts the Express API server (port 3000) and Vite dev server (port 5000) concurrently.
+
+### Other Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Backend + frontend (development) |
+| `npm run dev:web` | Vite frontend only |
+| `npm run dev:server` | Express backend only (with watch) |
+| `npm run build` | Production bundle |
+| `npm run preview` | Preview production build |
+| `npm start` | Production server |
+
+---
 
 ## Project Structure
 
@@ -127,95 +159,96 @@ This demo can be extended to use Redis or PostgreSQL later. That would require a
 va-pro-demo/
 ├── src/
 │   ├── components/
-│   │   ├── auth/           # Login and registration
-│   │   ├── tabs/           # Main application tabs
-│   │   ├── ClientModal.jsx
-│   │   ├── TaskModal.jsx
-│   │   ├── ProfileModal.jsx
-│   │   ├── FocusMode.jsx
-│   │   └── VADemo.jsx      # Main app component
+│   │   ├── auth/
+│   │   │   ├── AuthAlert.jsx       # Inline error/info banners
+│   │   │   ├── Login.jsx           # Sign-in form
+│   │   │   └── Register.jsx        # Registration form
+│   │   ├── tabs/
+│   │   │   ├── Dashboard.jsx       # Main overview
+│   │   │   ├── Clients.jsx         # Client list & detail
+│   │   │   ├── Tasks.jsx           # Task list & kanban
+│   │   │   ├── TimeTracking.jsx    # Time-entry log
+│   │   │   ├── Reports.jsx         # Analytics & PDF export
+│   │   │   └── Billing.jsx         # Invoices & billing
+│   │   ├── ClientModal.jsx         # Add/edit client
+│   │   ├── CommandPalette.jsx      # Ctrl+K command palette
+│   │   ├── ErrorBoundary.jsx       # React error boundary
+│   │   ├── FocusMode.jsx           # Fullscreen focus overlay
+│   │   ├── LandingPage.jsx         # Public marketing page
+│   │   ├── ProfileModal.jsx        # User profile & settings
+│   │   ├── ShaderBackground.jsx    # Three.js animated background
+│   │   ├── TaskModal.jsx           # Add/edit task
+│   │   ├── Toast.jsx               # Notification toasts
+│   │   └── VADemo.jsx              # Main authenticated app shell
 │   ├── context/
-│   │   └── AuthContext.jsx # Authentication state
+│   │   ├── AppDataContext.jsx      # App-wide data & timer state
+│   │   └── AuthContext.jsx         # Authentication state
+│   ├── lib/
+│   │   └── supabase.js             # Supabase client setup
 │   ├── utils/
-│   │   ├── localStorage.js # Client-side storage
-│   │   ├── notifications.js # Notification system
-│   │   └── timeWindow.js   # Time validation
-│   ├── App.jsx
-│   └── main.jsx
+│   │   ├── authErrors.js           # Auth error formatting
+│   │   ├── cloudStorage.js         # Supabase data helpers
+│   │   ├── localStorage.js         # localStorage helpers & keys
+│   │   ├── notifications.js        # Browser notifications
+│   │   ├── retry.js                # Fetch with retry
+│   │   ├── sanitize.js             # Input validation & sanitisation
+│   │   └── timeWindow.js           # Time-window & overtime logic
+│   ├── App.jsx                     # Root: landing → auth → app routing
+│   ├── index.css                   # Design system & CSS variables
+│   └── main.jsx                    # React entry point
 ├── server/
-│   └── index.js            # Express API server
+│   └── index.js                    # Express API server
+├── scripts/
+│   └── setup-db.mjs                # Database setup helper
 ├── index.html
 ├── vite.config.js
 ├── tailwind.config.js
 └── package.json
 ```
 
+---
+
 ## API Endpoints
 
-The Express backend provides the following API endpoints:
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/health` | Server health check |
+| `GET` | `/api/data/:userId/:key` | Retrieve user data |
+| `POST` | `/api/data/:userId/:key` | Store user data |
+| `DELETE` | `/api/data/:userId/:key` | Delete user data |
+| `POST` | `/api/auth/register` | Server-side registration (Supabase fallback) |
 
-- `GET /api/health` - Server health check
-- `GET /api/data/:userId/:key` - Retrieve user data from Redis
-- `POST /api/data/:userId/:key` - Store user data in Redis
-- `DELETE /api/data/:userId/:key` - Delete user data from Redis
-
-## Environment Configuration
-
-### Required Environment Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `REDIS_URL` | Redis connection URL | `redis://default:password@host:port` |
-| `DATABASE_URL` | PostgreSQL connection URL | `postgresql://user:password@host:port/database` |
-
-### Security Notes
-
-- All database credentials are stored as environment variables
-- Never commit credentials to version control
-- Use Replit Secrets for secure credential management
-- API endpoints include error handling and validation
-
-## Development
-
-### Hot Module Replacement (HMR)
-The Vite dev server supports HMR for instant updates during development.
-
-### Data Persistence
-- Frontend uses `localStorage` for client-side state
-- Backend uses in-memory storage (ephemeral)
-
-### Timezone Handling
-- Default timezone: Asia/Manila (Philippine Time)
-- Configurable per-user in profile settings
-- Time window enforcement: 8 AM - 8 PM by default
+---
 
 ## Deployment
 
-This application can be deployed on Railway:
+### Railway (recommended)
 
 1. Push code to GitHub
-2. Connect repository to Railway
-3. Set `PORT` (Railway usually injects it automatically)
-4. No database add-ons are required
-5. Railway will automatically build and deploy
+2. Connect repo to [Railway](https://railway.app)
+3. Set environment variables in the Railway dashboard
+4. Railway auto-builds and deploys on push
 
-Note: Since storage is in-memory, data will reset on each deploy/restart. For persistent storage, integrate a database.
+### Vercel
+
+A `vercel.json` is included for static/serverless deployments.
+
+### Notes
+- Data stored in-memory on the server resets on restart/redeploy
+- For persistent storage, integrate a PostgreSQL add-on and update `server/index.js`
+- Static assets are served by Express in production (`dist/`)
+
+---
 
 ## Browser Support
 
-- Chrome/Edge (latest)
+- Chrome / Edge (latest)
 - Firefox (latest)
 - Safari (latest)
 
-## Contributing
-
-This is a demo application. For production use, consider:
-- Implementing proper authentication with JWT tokens
-- Adding database migrations
-- Setting up comprehensive error logging
-- Implementing rate limiting
-- Adding automated tests
+---
 
 ## License
 
-Proprietary - Demo Application
+Proprietary — Demo Application  
+Portfolio: [clarklindleysuan.com](https://clarklindleysuan.com/)

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import LandingPage from './components/LandingPage';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import VADemo from './components/VADemo.jsx';
 
+// Possible views for unauthenticated users: 'landing' | 'login' | 'register'
 function AppContent() {
   const { isAuthenticated, authLoading, login, register } = useAuth();
-  const [showRegister, setShowRegister] = useState(false);
+  const [view, setView] = useState('landing');
 
   if (authLoading) {
     return (
@@ -18,24 +20,35 @@ function AppContent() {
     );
   }
 
-  if (!isAuthenticated) {
-    if (showRegister) {
-      return (
-        <Register
-          onRegister={register}
-          onSwitchToLogin={() => setShowRegister(false)}
-        />
-      );
-    }
+  if (isAuthenticated) {
+    return <VADemo />;
+  }
+
+  if (view === 'register') {
     return (
-      <Login
-        onLogin={login}
-        onSwitchToRegister={() => setShowRegister(true)}
+      <Register
+        onRegister={register}
+        onSwitchToLogin={() => setView('login')}
       />
     );
   }
 
-  return <VADemo />;
+  if (view === 'login') {
+    return (
+      <Login
+        onLogin={login}
+        onSwitchToRegister={() => setView('register')}
+      />
+    );
+  }
+
+  // Default: landing page
+  return (
+    <LandingPage
+      onGetStarted={() => setView('register')}
+      onSignIn={() => setView('login')}
+    />
+  );
 }
 
 export default function App() {
