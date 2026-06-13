@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import LandingPage from './components/LandingPage';
@@ -57,6 +58,7 @@ export default function App() {
       <AuthProvider>
         <AppContent />
       </AuthProvider>
+      <Analytics />
     </ErrorBoundary>
   );
 }
