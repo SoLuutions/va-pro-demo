@@ -65,7 +65,8 @@ export default function ShaderBackground({ theme }) {
       `,
     });
 
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
     canvas.__threeUniforms = uniforms;
@@ -108,8 +109,9 @@ export default function ShaderBackground({ theme }) {
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener("resize", resize);
-      renderer.dispose();
+      geometry.dispose();
       material.dispose();
+      renderer.dispose();
     };
   }, []);
 

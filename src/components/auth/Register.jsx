@@ -28,7 +28,7 @@ export default function Register({ onRegister, onSwitchToLogin }) {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       setError(formatValidationError("password_short"));
       return;
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   BarChart3, Users, CheckCircle, Clock, DollarSign, FileText, Maximize2, LogOut, Sun, Moon, Plus, ChevronsLeft, ChevronsRight,
 } from "lucide-react";
@@ -521,14 +521,14 @@ const VADemo = () => {
     loadFromStorage("va_pro_ui_settings", { darkMode: false, ndaMode: false, theme: "green" })
   );
 
-  const addToast = (message, type = "info") => {
-    const toast = { id: Date.now(), message, type };
+  const addToast = useCallback((message, type = "info") => {
+    const toast = { id: crypto.randomUUID(), message, type };
     setToasts((prev) => [...prev, toast]);
-  };
+  }, []);
 
-  const dismissToast = (id) => {
+  const dismissToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
   useEffect(() => {
     if (!user?.id || !isSupabaseConfigured()) return;

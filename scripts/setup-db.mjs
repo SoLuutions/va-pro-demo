@@ -45,9 +45,17 @@ const cleanUrl = ipv4Url
   .replace(/([?&])sslmode=[^&]*&?/g, "$1")
   .replace(/[?&]$/, "");
 
+const sslNoVerify = process.env.DATABASE_SSL_NO_VERIFY === 'true';
+if (sslNoVerify) {
+  console.warn('DATABASE_SSL_NO_VERIFY=true — TLS certificate verification is disabled.');
+}
+
 const client = new pg.Client({
   connectionString: cleanUrl,
-  ssl: { rejectUnauthorized: false },
+  ssl: {
+    rejectUnauthorized: !sslNoVerify,
+    ca: process.env.DATABASE_CA_CERT || undefined,
+  },
   connectionTimeoutMillis: 20000,
 });
 
@@ -57,8 +65,7 @@ try {
   console.log("Database schema applied successfully.");
 } catch (error) {
   console.error("Failed to apply schema:", error.message);
-  console.error("\nIf this keeps failing, paste supabase/schema.sql into the Supabase SQL Editor instead:");
-  console.error("https://supabase.com/dashboard/project/onygfnhapuzjrknwbian/sql");
+  console.error("\nIf this keeps failing, paste supabase/schema.sql into the Supabase SQL Editor instead (Dashboard → SQL Editor).");
   process.exit(1);
 } finally {
   await client.end();

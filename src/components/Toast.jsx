@@ -1,15 +1,38 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 
 export default function Toast({ toasts, onDismiss }) {
+  const timersRef = useRef(new Map());
+
   useEffect(() => {
+    const timers = timersRef.current;
+
     toasts.forEach(toast => {
-      const timer = setTimeout(() => {
-        onDismiss(toast.id);
-      }, 5000);
-      return () => clearTimeout(timer);
+      if (!timers.has(toast.id)) {
+        timers.set(toast.id, setTimeout(() => {
+          timers.delete(toast.id);
+          onDismiss(toast.id);
+        }, 5000));
+      }
     });
+
+    // Clear timers for toasts dismissed by other means
+    const activeIds = new Set(toasts.map(t => t.id));
+    for (const [id, timer] of timers) {
+      if (!activeIds.has(id)) {
+        clearTimeout(timer);
+        timers.delete(id);
+      }
+    }
   }, [toasts, onDismiss]);
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach(clearTimeout);
+      timers.clear();
+    };
+  }, []);
 
   if (toasts.length === 0) return null;
 

@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,9 +37,17 @@ if (connectionString) {
     .replace(/([?&])sslmode=[^&]*&?/g, "$1")
     .replace(/[?&]$/, "");
     
+  const sslNoVerify = process.env.DATABASE_SSL_NO_VERIFY === 'true';
+  if (sslNoVerify) {
+    console.warn('⚠️ DATABASE_SSL_NO_VERIFY=true — TLS certificate verification is disabled.');
+  }
+
   pool = new Pool({
     connectionString: cleanUrl,
-    ssl: { rejectUnauthorized: false },
+    ssl: {
+      rejectUnauthorized: !sslNoVerify,
+      ca: process.env.DATABASE_CA_CERT || undefined,
+    },
     connectionTimeoutMillis: 10000,
   });
   console.log("🐘 PostgreSQL pool initialized successfully.");
@@ -48,6 +56,8 @@ if (connectionString) {
 }
 
 const memoryStore = new Map();
+
+const MAX_DATA_BYTES = 1_000_000; // 1 MB per key
 
 // --- Rate Limiting Middleware ---
 const authLimiter = rateLimit({
@@ -71,6 +81,33 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+// --- Auth Middleware for user data endpoints ---
+// Verifies the Supabase access token and ensures it belongs to :userId.
+// In local demo mode (no Supabase admin configured) there is no token system,
+// so validation is skipped and data lives in the ephemeral memory store.
+async function requireDataAuth(req, res, next) {
+  if (!adminConfigured) return next();
+
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) {
+    return res.status(401).json({ success: false, error: 'Authentication required' });
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !data?.user) {
+      return res.status(401).json({ success: false, error: 'Invalid or expired session' });
+    }
+    if (data.user.id !== req.params.userId) {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+    next();
+  } catch {
+    res.status(500).json({ success: false, error: 'Authentication check failed' });
+  }
+}
 
 app.get('/api/health', async (_req, res) => {
   res.json({
@@ -97,10 +134,10 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
         error: mapServerRegisterError("Name, email, and password are required"),
       });
     }
-    if (password.length < 6) {
+    if (password.length < 8) {
       return res.status(400).json({
         success: false,
-        error: mapServerRegisterError("Password must be at least 6 characters"),
+        error: mapServerRegisterError("Password must be at least 8 characters"),
       });
     }
 
@@ -136,7 +173,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 });
 
 
-app.get('/api/data/:userId/:key', apiLimiter, async (req, res) => {
+app.get('/api/data/:userId/:key', apiLimiter, requireDataAuth, async (req, res) => {
   try {
     const { userId, key } = req.params;
     
@@ -157,10 +194,15 @@ app.get('/api/data/:userId/:key', apiLimiter, async (req, res) => {
   }
 });
 
-app.post('/api/data/:userId/:key', apiLimiter, async (req, res) => {
+app.post('/api/data/:userId/:key', apiLimiter, requireDataAuth, async (req, res) => {
+  let dbClient = null;
   try {
     const { userId, key } = req.params;
     let { data } = req.body;
+
+    if (Buffer.byteLength(JSON.stringify(data ?? null), 'utf8') > MAX_DATA_BYTES) {
+      return res.status(413).json({ success: false, error: 'Payload too large' });
+    }
 
     // 1. Input Sanitization
     if (key === 'va_pro_clients' && Array.isArray(data)) {
@@ -194,10 +236,17 @@ app.post('/api/data/:userId/:key', apiLimiter, async (req, res) => {
       };
     }
 
+    if (pool) {
+      dbClient = await pool.connect();
+      await dbClient.query('BEGIN');
+      // Serialize writes per user to close read-validate-write races
+      await dbClient.query('SELECT pg_advisory_xact_lock(hashtext($1::text))', [userId]);
+    }
+
     // Fetch existing data for validation
     let existingData = null;
-    if (pool) {
-      const resDb = await pool.query(
+    if (dbClient) {
+      const resDb = await dbClient.query(
         'SELECT data FROM public.user_app_data WHERE user_id = $1 AND key = $2',
         [userId, key]
       );
@@ -211,8 +260,8 @@ app.post('/api/data/:userId/:key', apiLimiter, async (req, res) => {
     if (key === 'va_pro_active_timer') {
       if (data && data.startedAt) {
         let existingTimer = null;
-        if (pool) {
-          const resTimer = await pool.query(
+        if (dbClient) {
+          const resTimer = await dbClient.query(
             'SELECT data FROM public.user_app_data WHERE user_id = $1 AND key = $2',
             [userId, 'va_pro_active_timer']
           );
@@ -246,8 +295,8 @@ app.post('/api/data/:userId/:key', apiLimiter, async (req, res) => {
 
       if (newEntries.length > 0) {
         let activeTimer = null;
-        if (pool) {
-          const resTimer = await pool.query(
+        if (dbClient) {
+          const resTimer = await dbClient.query(
             'SELECT data FROM public.user_app_data WHERE user_id = $1 AND key = $2',
             [userId, 'va_pro_active_timer']
           );
@@ -276,8 +325,8 @@ app.post('/api/data/:userId/:key', apiLimiter, async (req, res) => {
             }
             
             // Clear active timer on server since it is now logged
-            if (pool) {
-              await pool.query(
+            if (dbClient) {
+              await dbClient.query(
                 'DELETE FROM public.user_app_data WHERE user_id = $1 AND key = $2',
                 [userId, 'va_pro_active_timer']
               );
@@ -298,14 +347,15 @@ app.post('/api/data/:userId/:key', apiLimiter, async (req, res) => {
     }
 
     // Save to DB or fallback memory
-    if (pool) {
-      await pool.query(
+    if (dbClient) {
+      await dbClient.query(
         `INSERT INTO public.user_app_data (user_id, key, data, updated_at)
          VALUES ($1, $2, $3, NOW())
          ON CONFLICT (user_id, key)
          DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`,
-        [userId, key, JSON.stringify(data)]
+        [userId, key, JSON.stringify(data ?? null)]
       );
+      await dbClient.query('COMMIT');
     } else {
       if (!memoryStore.has(userId)) memoryStore.set(userId, new Map());
       memoryStore.get(userId).set(key, data);
@@ -313,11 +363,16 @@ app.post('/api/data/:userId/:key', apiLimiter, async (req, res) => {
 
     res.json({ success: true, message: 'Data saved', data });
   } catch (error) {
+    if (dbClient) {
+      try { await dbClient.query('ROLLBACK'); } catch {}
+    }
     res.status(500).json({ success: false, error: error.message });
+  } finally {
+    if (dbClient) dbClient.release();
   }
 });
 
-app.delete('/api/data/:userId/:key', apiLimiter, async (req, res) => {
+app.delete('/api/data/:userId/:key', apiLimiter, requireDataAuth, async (req, res) => {
   try {
     const { userId, key } = req.params;
     

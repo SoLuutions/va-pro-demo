@@ -96,14 +96,16 @@ export const FIELD_VALIDATORS = {
   
   email: (value) => {
     const sanitized = sanitizeInput(value).toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(sanitized)) return { valid: false, error: 'Invalid email format' };
+    const emailRegex = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
+    if (sanitized.length > 254 || !emailRegex.test(sanitized)) {
+      return { valid: false, error: 'Invalid email format' };
+    }
     return { valid: true, value: sanitized };
   },
-  
+
   password: (value) => {
     if (!value) return { valid: false, error: 'Password is required' };
-    if (value.length < 6) return { valid: false, error: 'Password must be at least 6 characters' };
+    if (value.length < 8) return { valid: false, error: 'Password must be at least 8 characters' };
     return { valid: true, value };
   },
   

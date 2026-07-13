@@ -1,5 +1,18 @@
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 
+// Attach the Supabase access token so the Express API can verify ownership.
+// In local demo mode (no Supabase) there is no token; the server skips auth.
+async function getAuthHeaders() {
+  if (!isSupabaseConfigured()) return {};
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 export async function fetchUserDataKey(userId, key, defaultValue = null) {
   if (!userId) return defaultValue;
 
@@ -23,7 +36,9 @@ export async function fetchUserDataKey(userId, key, defaultValue = null) {
 
   // Fallback: load from local Express server API
   try {
-    const response = await fetch(`/api/data/${userId}/${key}`);
+    const response = await fetch(`/api/data/${userId}/${key}`, {
+      headers: await getAuthHeaders(),
+    });
     if (response.ok) {
       const result = await response.json();
       if (result.success) {
@@ -63,7 +78,7 @@ export async function upsertUserDataKey(userId, key, value) {
   try {
     const response = await fetch(`/api/data/${userId}/${key}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(await getAuthHeaders()) },
       body: JSON.stringify({ data: value }),
     });
     if (response.ok) {

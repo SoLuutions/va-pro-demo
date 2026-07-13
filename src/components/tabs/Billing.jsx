@@ -9,10 +9,12 @@ export default function Billing({ clients, tasks, timeEntries, formatCurrency, u
   const [invoiceNotes, setInvoiceNotes] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
 
-  // Bug #6: Auto-select the first client whenever one becomes available
+  // Auto-select the first client, and reset the selection if the chosen
+  // client has been deleted so the invoice never references a missing client.
   useEffect(() => {
-    if (!invoiceClient && clients.length > 0) {
-      setInvoiceClient(clients[0].id);
+    const selectionExists = invoiceClient && clients.some((c) => c.id === invoiceClient);
+    if (!selectionExists) {
+      setInvoiceClient(clients.length > 0 ? clients[0].id : null);
     }
   }, [clients, invoiceClient]);
 

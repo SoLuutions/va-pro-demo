@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { isValidUrl } from '../utils/sanitize';
 
 export default function ProfileModal({ profile, onSave, onClose, uiSettings, onUpdateUiSettings }) {
   const [formData, setFormData] = useState({
@@ -8,10 +9,17 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
     timezone: profile?.timezone || 'Asia/Manila',
     avatarUrl: profile?.avatarUrl || ''
   });
+  const [avatarError, setAvatarError] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    const avatarUrl = formData.avatarUrl.trim();
+    if (avatarUrl && (avatarUrl.length > 2048 || !isValidUrl(avatarUrl))) {
+      setAvatarError('Avatar URL must be a valid http(s) URL under 2048 characters.');
+      return;
+    }
+    setAvatarError(null);
+    onSave({ ...formData, avatarUrl });
     onClose();
   };
 
@@ -92,6 +100,9 @@ export default function ProfileModal({ profile, onSave, onClose, uiSettings, onU
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 dark:text-gray-100"
               placeholder="https://example.com/avatar.jpg"
             />
+            {avatarError && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{avatarError}</p>
+            )}
           </div>
 
           <div className="pt-2 space-y-4">

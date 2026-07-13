@@ -258,7 +258,7 @@ export function AppDataProvider({ user, addToast, children }) {
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTimer, timerStartedAt, isOnBreak, totalBreakTime]);
+  }, [activeTimer, timerStartedAt, isOnBreak, totalBreakTime, addToast]);
 
   const handleStartTimer = (taskId) => {
     const task = tasks.find((t) => t.id === taskId);
@@ -468,7 +468,7 @@ export function AppDataProvider({ user, addToast, children }) {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [addToast]);
 
   // --- IDLE DETECTION & AUTO-PAUSE ---
   const lastActivityRef = useRef(Date.now());
@@ -506,7 +506,8 @@ export function AppDataProvider({ user, addToast, children }) {
       window.removeEventListener("scroll", handleUserActivity);
       clearInterval(checkIdle);
     };
-  }, [activeTimer, isOnBreak]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTimer, isOnBreak, addToast]);
 
   // --- AUTOMATED DEMO DATA SEEDER ---
   const seedDemoData = () => {

@@ -60,8 +60,13 @@ export const AuthProvider = ({ children }) => {
   const loginLocal = async (email, password) => {
     const hashed = await hashPassword(password);
     const users = loadFromStorage(STORAGE_KEYS.REGISTERED_USERS, []);
+    // Plaintext comparison only for legacy unmigrated accounts — otherwise a
+    // leaked hash could be replayed directly as the password.
+    const isStoredHash = (stored) => /^[0-9a-f]{64}$/.test(stored || "");
     const existingUser = users.find(
-      (u) => u.email === email && (u.password === hashed || u.password === password)
+      (u) =>
+        u.email === email &&
+        (u.password === hashed || (!isStoredHash(u.password) && u.password === password))
     );
     if (existingUser) {
       const uuid = existingUser.id || self.crypto.randomUUID();

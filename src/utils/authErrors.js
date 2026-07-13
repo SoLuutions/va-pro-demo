@@ -54,7 +54,7 @@ export function formatAuthError(raw) {
   if (lower.includes("password") && (lower.includes("least") || lower.includes("short"))) {
     return {
       title: "Password too short",
-      message: "Use at least 6 characters for your password.",
+      message: "Use at least 8 characters for your password.",
     };
   }
 
@@ -87,7 +87,7 @@ export function formatAuthError(raw) {
   if (lower.includes("weak password") || lower.includes("password should")) {
     return {
       title: "Password too weak",
-      message: "Choose a stronger password with at least 6 characters.",
+      message: "Choose a stronger password with at least 8 characters.",
     };
   }
 
@@ -140,7 +140,7 @@ export function formatValidationError(field) {
     case "password_short":
       return {
         title: "Password too short",
-        message: "Use at least 6 characters for your password.",
+        message: "Use at least 8 characters for your password.",
       };
     default:
       return {
